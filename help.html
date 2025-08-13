@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help - Schedule Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-calendar-alt"></i> Schedule Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> Schedule
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="editor.html">
+                            <i class="fas fa-edit"></i> Editor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="help.html">
+                            <i class="fas fa-question-circle"></i> Help
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container help-container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-question-circle text-primary"></i>
+            Schedule Manager Help Guide
+        </h1>
+
+        <!-- Quick Start -->
+        <div class="help-section">
+            <h2><i class="fas fa-rocket"></i> Quick Start</h2>
+            <ol>
+                <li><strong>View Schedule:</strong> Go to the main Schedule page to see your current schedule</li>
+                <li><strong>Edit Entries:</strong> Navigate to the Editor page to add, modify, or delete schedule entries</li>
+                <li><strong>Customize Appearance:</strong> Use the Theme Settings in the Editor to personalize colors and text</li>
+                <li><strong>Import/Export:</strong> Save your schedule as JSON or import from a file</li>
+            </ol>
+            
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Pro Tip</h4>
+                <p>Your schedule is automatically saved to your browser's local storage. No need to manually save!</p>
+            </div>
+        </div>
+
+        <!-- Schedule Viewer -->
+        <div class="help-section">
+            <h2><i class="fas fa-calendar"></i> Schedule Viewer</h2>
+            <p>The main schedule page displays all your time slots in an organized grid layout.</p>
+            
+            <h3>Features:</h3>
+            <ul class="feature-list">
+                <li><strong>Refresh:</strong> Reload the schedule to see latest changes</li>
+                <li><strong>Export JSON:</strong> Download your entire schedule as a JSON file for backup or sharing</li>
+                <li><strong>Import JSON:</strong> Load a previously exported schedule file</li>
+                <li><strong>Print:</strong> Generate a printer-friendly version of your schedule</li>
+                <li><strong>Reset to Defaults:</strong> Restore the original demo schedule (WARNING: This erases all your changes!)</li>
+                <li><strong>View Modes:</strong> Switch between Detailed (full info) and Compact (space-saving) views</li>
+                <li><strong>Day Filter:</strong> Show only entries for specific days of the week</li>
+            </ul>
+
+            <h3>Schedule Card Elements:</h3>
+            <ul>
+                <li><strong>Time Range:</strong> Shows start and end times with an icon</li>
+                <li><strong>Subject:</strong> The main activity or class name</li>
+                <li><strong>Grade Badge:</strong> Green badge showing the grade level</li>
+                <li><strong>Students:</strong> Gray chips listing assigned students</li>
+                <li><strong>Teachers:</strong> Blue chips showing assigned teachers</li>
+                <li><strong>Notes:</strong> Yellow highlighted special instructions or reminders</li>
+                <li><strong>Edit Button:</strong> Appears on hover - click to jump to editor</li>
+            </ul>
+        </div>
+
+        <!-- Schedule Editor -->
+        <div class="help-section">
+            <h2><i class="fas fa-edit"></i> Schedule Editor</h2>
+            <p>The editor provides comprehensive tools for managing your schedule entries.</p>
+            
+            <h3>Layout:</h3>
+            <ul>
+                <li><strong>Left Panel:</strong> List of all schedule entries, theme settings, and student/teacher management</li>
+                <li><strong>Right Panel:</strong> Detailed entry editor and live preview</li>
+            </ul>
+
+            <h3>Creating a New Entry:</h3>
+            <ol>
+                <li>Click the green <span class="keyboard-shortcut">+ New</span> button at the top of the schedule list</li>
+                <li>Fill in the required fields:
+                    <ul>
+                        <li><strong>Start/End Time:</strong> Set the time range for this activity</li>
+                        <li><strong>Subject:</strong> Name of the class or activity</li>
+                    </ul>
+                </li>
+                <li>Configure optional fields:
+                    <ul>
+                        <li><strong>Grade:</strong> Grade level (e.g., "4th", "K-2", "Mixed")</li>
+                        <li><strong>Type:</strong> Choose Normal Class, Special Activity, or Break/Planning</li>
+                        <li><strong>Icon:</strong> Select a visual icon from the dropdown</li>
+                        <li><strong>Color:</strong> Pick a color theme for this entry</li>
+                        <li><strong>Students:</strong> Check boxes to assign students</li>
+                        <li><strong>Teachers:</strong> Check boxes to assign teachers</li>
+                        <li><strong>Note:</strong> Add any special instructions</li>
+                        <li><strong>Sort Order:</strong> Lower numbers appear first (default: 999)</li>
+                        <li><strong>Day of Week:</strong> Specify when this entry occurs</li>
+                    </ul>
+                </li>
+                <li>Click <span class="keyboard-shortcut">Save Entry</span> to add it to your schedule</li>
+            </ol>
+
+            <h3>Editing an Entry:</h3>
+            <ol>
+                <li>Click on any entry in the left panel list</li>
+                <li>The form will populate with current values</li>
+                <li>Make your changes</li>
+                <li>Click <span class="keyboard-shortcut">Save Entry</span> to update</li>
+            </ol>
+
+            <h3>Deleting an Entry:</h3>
+            <ol>
+                <li>Select the entry you want to remove</li>
+                <li>Click the red <span class="keyboard-shortcut">Delete</span> button</li>
+                <li>Confirm the deletion when prompted</li>
+            </ol>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> Warning</h4>
+                <p>Deletions cannot be undone! Make sure to export your schedule regularly as a backup.</p>
+            </div>
+        </div>
+
+        <!-- Color Customization -->
+        <div class="help-section">
+            <h2><i class="fas fa-palette"></i> Color Customization</h2>
+            <p>Each schedule entry can have its own color theme for easy visual identification.</p>
+            
+            <h3>Setting Entry Colors:</h3>
+            <ul>
+                <li>Click the color picker square to open a visual color selector</li>
+                <li>Or type/paste a hex color code (e.g., #3b82f6) in the text field</li>
+                <li>The preview will update in real-time</li>
+            </ul>
+
+            <h3>Suggested Color Meanings:</h3>
+            <ul class="feature-list">
+                <li><strong>Blue (#3b82f6):</strong> Math and analytical subjects</li>
+                <li><strong>Green (#10b981):</strong> Language arts and reading</li>
+                <li><strong>Purple (#8b5cf6):</strong> Special programs</li>
+                <li><strong>Pink (#ec4899):</strong> Social-emotional learning</li>
+                <li><strong>Orange (#f59e0b):</strong> Breaks and planning time</li>
+                <li><strong>Red (#ef4444):</strong> Important or urgent items</li>
+            </ul>
+        </div>
+
+        <!-- Student & Teacher Management -->
+        <div class="help-section">
+            <h2><i class="fas fa-users"></i> Student & Teacher Management</h2>
+            
+            <h3>Managing Students:</h3>
+            <ol>
+                <li>Click <span class="keyboard-shortcut">Manage Students</span> in the editor's left panel</li>
+                <li>To add: Type a name and click the green + button</li>
+                <li>To remove: Click the red trash icon next to their name</li>
+                <li>Students are automatically available as checkboxes when editing entries</li>
+            </ol>
+
+            <h3>Managing Teachers:</h3>
+            <ol>
+                <li>Click <span class="keyboard-shortcut">Manage Teachers</span> in the editor's left panel</li>
+                <li>Add teachers with name, email, and phone (optional)</li>
+                <li>Assign teachers to time slots just like students</li>
+                <li>Teacher info helps with communication and scheduling</li>
+            </ol>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Organization Tip</h4>
+                <p>Use consistent naming (First Last) for easy alphabetical sorting. For groups, use descriptive names like "PLC-4th Grade".</p>
+            </div>
+        </div>
+
+        <!-- Theme Settings -->
+        <div class="help-section">
+            <h2><i class="fas fa-paint-brush"></i> Theme Settings</h2>
+            <p>Customize the overall appearance of your schedule viewer.</p>
+            
+            <h3>Available Settings:</h3>
+            <ul class="feature-list">
+                <li><strong>Title:</strong> Main heading displayed on schedule page</li>
+                <li><strong>Subtitle:</strong> Secondary text (e.g., academic year)</li>
+                <li><strong>Background:</strong> CSS gradient or solid color for page background</li>
+                <li><strong>Header Text Color:</strong> Color of title and subtitle text</li>
+                <li><strong>Controls Background:</strong> Background color of the control panel</li>
+            </ul>
+
+            <h3>Example Backgrounds:</h3>
+            <ul>
+                <li><code>linear-gradient(135deg, #667eea 0%, #764ba2 100%)</code> - Purple gradient</li>
+                <li><code>linear-gradient(90deg, #f093fb 0%, #f5576c 100%)</code> - Pink sunset</li>
+                <li><code>#2d3748</code> - Solid dark gray</li>
+            </ul>
+        </div>
+
+        <!-- Import/Export -->
+        <div class="help-section">
+            <h2><i class="fas fa-file-export"></i> Import & Export</h2>
+            
+            <h3>Exporting Your Schedule:</h3>
+            <ol>
+                <li>Click <span class="keyboard-shortcut">Export JSON</span> on the main schedule page</li>
+                <li>Your browser will download a file named <code>schedule-YYYY-MM-DD.json</code></li>
+                <li>This file contains all entries, students, teachers, and theme settings</li>
+            </ol>
+
+            <h3>Importing a Schedule:</h3>
+            <ol>
+                <li>Click <span class="keyboard-shortcut">Import JSON</span> on the main schedule page</li>
+                <li>Select a previously exported JSON file</li>
+                <li>Confirm the import (this replaces your current schedule!)</li>
+            </ol>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> Important</h4>
+                <p>Importing a schedule will completely replace your current data. Always export a backup first!</p>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcuts -->
+        <div class="help-section">
+            <h2><i class="fas fa-keyboard"></i> Tips & Tricks</h2>
+            
+            <h3>Best Practices:</h3>
+            <ul class="feature-list">
+                <li><strong>Sort Order:</strong> Use multiples of 10 (10, 20, 30) to leave room for insertions</li>
+                <li><strong>Day Filtering:</strong> Set "Tuesdays and Thursdays only" for recurring special activities</li>
+                <li><strong>Icons:</strong> Choose icons that visually represent the subject for quick scanning</li>
+                <li><strong>Notes:</strong> Include room numbers, special materials needed, or reminders</li>
+                <li><strong>Backup:</strong> Export your schedule weekly or before major changes</li>
+            </ul>
+
+            <h3>Browser Compatibility:</h3>
+            <p>This application works best in modern browsers:</p>
+            <ul>
+                <li>Chrome/Edge (version 90+)</li>
+                <li>Firefox (version 88+)</li>
+                <li>Safari (version 14+)</li>
+            </ul>
+        </div>
+
+        <!-- Data Storage -->
+        <div class="help-section">
+            <h2><i class="fas fa-database"></i> Data Storage</h2>
+            
+            <h3>How Your Data is Stored:</h3>
+            <ul class="feature-list">
+                <li><strong>Local Storage:</strong> All data is saved in your browser's local storage</li>
+                <li><strong>Privacy:</strong> No data is sent to external servers</li>
+                <li><strong>Persistence:</strong> Data remains until you clear browser data or reset</li>
+                <li><strong>Capacity:</strong> Can store hundreds of schedule entries</li>
+            </ul>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-shield-alt"></i> Privacy Note</h4>
+                <p>Your schedule data never leaves your computer. Everything is stored locally in your browser for maximum privacy and security.</p>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="help-section">
+            <h2><i class="fas fa-tools"></i> Troubleshooting</h2>
+            
+            <h3>Common Issues:</h3>
+            <ul class="feature-list">
+                <li>
+                    <strong>Schedule not loading:</strong>
+                    <ul>
+                        <li>Try refreshing the page (F5)</li>
+                        <li>Check if JavaScript is enabled in your browser</li>
+                        <li>Clear browser cache and reload</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Changes not saving:</strong>
+                    <ul>
+                        <li>Ensure you clicked "Save Entry" after making changes</li>
+                        <li>Check if browser storage is full or disabled</li>
+                        <li>Try exporting as backup, then reimporting</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Print layout issues:</strong>
+                    <ul>
+                        <li>Use landscape orientation for best results</li>
+                        <li>Switch to Compact View before printing</li>
+                        <li>Adjust browser zoom to 100%</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>Reset Options:</h3>
+            <ul>
+                <li><strong>Soft Reset:</strong> Click "Reset to Defaults" to restore demo data</li>
+                <li><strong>Hard Reset:</strong> Clear browser data for this site in browser settings</li>
+            </ul>
+        </div>
+
+        <!-- Contact -->
+        <div class="help-section">
+            <h2><i class="fas fa-envelope"></i> Need More Help?</h2>
+            <p>This schedule manager is designed to be intuitive and self-contained. If you encounter issues:</p>
+            <ol>
+                <li>Try exporting your data as a backup</li>
+                <li>Refresh the page or restart your browser</li>
+                <li>Check that you're using a supported modern browser</li>
+                <li>As a last resort, use "Reset to Defaults" and re-import your backup</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

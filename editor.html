@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Editor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-calendar-alt"></i> Schedule Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> Schedule
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="editor.html">
+                            <i class="fas fa-edit"></i> Editor
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <!-- Left Panel - Schedule List -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Schedule Entries</h5>
+                        <button class="btn btn-sm btn-success" onclick="editor.newEntry()">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="scheduleList" class="list-group">
+                            <!-- Schedule entries will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Settings -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Theme Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary w-100" onclick="editor.openThemeModal()">
+                            <i class="fas fa-palette"></i> Edit Theme
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Student Management -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">People Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-info w-100 mb-2" onclick="editor.openStudentModal()">
+                            <i class="fas fa-user-graduate"></i> Manage Students
+                        </button>
+                        <button class="btn btn-primary w-100" onclick="editor.openTeacherModal()">
+                            <i class="fas fa-chalkboard-teacher"></i> Manage Teachers
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PDF Settings -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">PDF Export Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-secondary w-100" onclick="editor.openPDFSettingsModal()">
+                            <i class="fas fa-file-pdf"></i> Configure PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Entry Editor -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Edit Entry</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="entryForm">
+                            <input type="hidden" id="entryId">
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Start Time</label>
+                                    <input type="time" class="form-control" id="timeStart" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">End Time</label>
+                                    <input type="time" class="form-control" id="timeEnd" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Subject/Activity</label>
+                                <input type="text" class="form-control" id="subject" required>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Grade</label>
+                                    <input type="text" class="form-control" id="grade" placeholder="e.g., 4th, 5th, K-2">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Type</label>
+                                    <select class="form-select" id="type">
+                                        <option value="normal">Normal Class</option>
+                                        <option value="special">Special Activity</option>
+                                        <option value="break">Break/Planning</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Icon</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i id="iconPreview" class="fas fa-clock"></i>
+                                        </span>
+                                        <select class="form-select" id="icon" onchange="editor.updateIconPreview()">
+                                            <option value="fa-clock">Clock</option>
+                                            <option value="fa-book">Book</option>
+                                            <option value="fa-book-open">Book Open</option>
+                                            <option value="fa-calculator">Calculator</option>
+                                            <option value="fa-brain">Brain</option>
+                                            <option value="fa-graduation-cap">Graduation Cap</option>
+                                            <option value="fa-users">Users</option>
+                                            <option value="fa-pen-fancy">Pen</option>
+                                            <option value="fa-spell-check">Spell Check</option>
+                                            <option value="fa-divide">Divide</option>
+                                            <option value="fa-square-root-alt">Square Root</option>
+                                            <option value="fa-clipboard-check">Clipboard</option>
+                                            <option value="fa-utensils">Utensils</option>
+                                            <option value="fa-coffee">Coffee</option>
+                                            <option value="fa-chalkboard-teacher">Teacher</option>
+                                            <option value="fa-microscope">Microscope</option>
+                                            <option value="fa-palette">Art</option>
+                                            <option value="fa-music">Music</option>
+                                            <option value="fa-running">PE/Sports</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Color</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="color" value="#3b82f6">
+                                        <input type="text" class="form-control" id="colorText" value="#3b82f6" onchange="editor.syncColorInputs()">
+                                    </div>
+                                    <small class="text-muted">Click to choose or enter hex code</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Students</label>
+                                <div id="studentCheckboxes" class="student-checkbox-grid">
+                                    <!-- Student checkboxes will be loaded here -->
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Teachers</label>
+                                <div id="teacherCheckboxes" class="student-checkbox-grid">
+                                    <!-- Teacher checkboxes will be loaded here -->
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Note</label>
+                                <textarea class="form-control" id="note" rows="2"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Sort Order</label>
+                                <input type="number" class="form-control" id="sortOrder" value="999">
+                                <small class="text-muted">Lower numbers appear first</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Day of Week</label>
+                                <select class="form-select" id="dayOfWeek">
+                                    <option value="all">All Days</option>
+                                    <option value="monday">Monday Only</option>
+                                    <option value="tuesday">Tuesday Only</option>
+                                    <option value="wednesday">Wednesday Only</option>
+                                    <option value="thursday">Thursday Only</option>
+                                    <option value="friday">Friday Only</option>
+                                    <option value="mwf">Mon/Wed/Fri</option>
+                                    <option value="tth">Tue/Thu</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Entry
+                                </button>
+                                <button type="button" class="btn btn-danger" id="deleteBtn" onclick="editor.deleteEntry()">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="editor.clearForm()">
+                                    <i class="fas fa-times"></i> Clear
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Preview Card -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Preview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="entryPreview">
+                            <!-- Preview will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Settings Modal -->
+    <div class="modal fade" id="themeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Theme Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="themeForm">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" id="themeTitle">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Subtitle</label>
+                            <input type="text" class="form-control" id="themeSubtitle">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Background</label>
+                            <input type="text" class="form-control" id="themeBackground" placeholder="CSS gradient or color">
+                            <small class="text-muted">Example: linear-gradient(135deg, #667eea 0%, #764ba2 100%)</small>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Header Text Color</label>
+                                <input type="color" class="form-control form-control-color" id="themeHeaderColor">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Controls Background</label>
+                                <input type="color" class="form-control form-control-color" id="themeControlsBg">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="editor.saveTheme()">Save Theme</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Management Modal -->
+    <div class="modal fade" id="studentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Students</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="newStudentName" placeholder="Student name">
+                        <button class="btn btn-success" onclick="editor.addStudent()">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                    <div id="studentList" class="list-group">
+                        <!-- Students will be listed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Management Modal -->
+    <div class="modal fade" id="teacherModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Teachers</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="teacherForm" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="newTeacherName" placeholder="Teacher name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="email" class="form-control" id="newTeacherEmail" placeholder="Email (optional)">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="tel" class="form-control" id="newTeacherPhone" placeholder="Phone (optional)">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="teacherList" class="list-group">
+                        <!-- Teachers will be listed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Settings Modal -->
+    <div class="modal fade" id="pdfSettingsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">PDF Export Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pdfSettingsForm">
+                        <h6 class="mb-3">Font Sizes (in points)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Time Font Size</label>
+                                <input type="number" class="form-control" id="pdfTimeFontSize" min="5" max="20" step="0.5" value="7">
+                                <small class="text-muted">Size for time display (e.g., "8:00-8:30")</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Grade Font Size</label>
+                                <input type="number" class="form-control" id="pdfGradeFontSize" min="5" max="20" step="0.5" value="7">
+                                <small class="text-muted">Size for grade labels</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Subject Font Size (Line 1)</label>
+                                <input type="number" class="form-control" id="pdfSubjectFontSize" min="5" max="20" step="0.5" value="10">
+                                <small class="text-muted">Size for main subject text</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Subject Font Size (Line 2)</label>
+                                <input type="number" class="form-control" id="pdfSubjectLine2FontSize" min="5" max="20" step="0.5" value="9">
+                                <small class="text-muted">Size for wrapped subject text</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Student Font Size</label>
+                                <input type="number" class="form-control" id="pdfStudentFontSize" min="5" max="20" step="0.5" value="7.5">
+                                <small class="text-muted">Size for student names</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teacher Font Size</label>
+                                <input type="number" class="form-control" id="pdfTeacherFontSize" min="5" max="20" step="0.5" value="7.5">
+                                <small class="text-muted">Size for teacher names</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Note Font Size</label>
+                                <input type="number" class="form-control" id="pdfNoteFontSize" min="5" max="20" step="0.5" value="7">
+                                <small class="text-muted">Size for notes text</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <h6 class="mb-3">Spacing Settings (in mm)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Padding Before Subject</label>
+                                <input type="number" class="form-control" id="pdfPaddingBeforeSubject" min="0" max="20" step="0.5" value="10">
+                                <small class="text-muted">Space above subject text</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Padding After Subject</label>
+                                <input type="number" class="form-control" id="pdfPaddingAfterSubject" min="0" max="20" step="0.5" value="6">
+                                <small class="text-muted">Space below subject text</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Padding After Students</label>
+                                <input type="number" class="form-control" id="pdfPaddingAfterStudents" min="0" max="20" step="0.5" value="2">
+                                <small class="text-muted">Space after student names</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Padding After Teachers</label>
+                                <input type="number" class="form-control" id="pdfPaddingAfterTeachers" min="0" max="20" step="0.5" value="5">
+                                <small class="text-muted">Space after teacher names</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Padding Before Note</label>
+                                <input type="number" class="form-control" id="pdfPaddingBeforeNote" min="0" max="20" step="0.5" value="2">
+                                <small class="text-muted">Space before notes</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <h6 class="mb-3">Layout Settings</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Columns per Page</label>
+                                <input type="number" class="form-control" id="pdfColumnsPerPage" min="2" max="6" value="4">
+                                <small class="text-muted">Number of schedule cards per row</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Rows per Page</label>
+                                <input type="number" class="form-control" id="pdfRowsPerPage" min="2" max="6" value="4">
+                                <small class="text-muted">Number of rows of cards</small>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> These settings control how your schedule appears when exported to PDF. Adjust font sizes and layout to fit your needs.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="editor.resetPDFSettings()">Reset to Defaults</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="editor.savePDFSettings()">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast for notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/editor.js"></script>
+</body>
+</html>

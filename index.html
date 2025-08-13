@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teaching Schedule Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-calendar-alt"></i> Schedule Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">
+                            <i class="fas fa-home"></i> Schedule
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="editor.html">
+                            <i class="fas fa-edit"></i> Editor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="help.html">
+                            <i class="fas fa-question-circle"></i> Help
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="header">
+            <h1 id="scheduleTitle"></h1>
+            <p id="scheduleSubtitle"></p>
+        </div>
+
+        <div class="controls">
+            <h3><i class="fas fa-cog"></i> Schedule Controls</h3>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="scheduleManager.refresh()" 
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                        title="Reload the schedule to see latest changes">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+                <button class="btn btn-secondary" onclick="scheduleManager.exportJSON()"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                        title="Download your schedule as a JSON file for backup">
+                    <i class="fas fa-download"></i> Export JSON
+                </button>
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                        title="Load a schedule from a JSON file (replaces current schedule)">
+                    <i class="fas fa-upload"></i> Import JSON
+                </button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="scheduleManager.importJSON(event)">
+                <button class="btn btn-secondary" onclick="scheduleManager.exportPDF()"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                        title="Export schedule as PDF with perfect formatting">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button class="btn btn-warning" onclick="scheduleManager.resetToDefaults()"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                        title="WARNING: Erases all changes and restores demo schedule">
+                    <i class="fas fa-undo"></i> Reset to Defaults
+                </button>
+            </div>
+            <div class="view-toggle mt-2">
+                <button class="view-btn active" onclick="scheduleManager.setView('detailed')">
+                    <i class="fas fa-expand"></i> Detailed View
+                </button>
+                <button class="view-btn" onclick="scheduleManager.setView('compact')">
+                    <i class="fas fa-compress"></i> Compact View
+                </button>
+            </div>
+            <div class="filter-controls mt-3">
+                <label class="form-label">Filter by Day:</label>
+                <select id="dayFilter" class="form-select" onchange="scheduleManager.filterByDay(this.value)">
+                    <option value="all">All Days</option>
+                    <option value="monday">Monday</option>
+                    <option value="tuesday">Tuesday</option>
+                    <option value="wednesday">Wednesday</option>
+                    <option value="thursday">Thursday</option>
+                    <option value="friday">Friday</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="loadingSpinner" class="text-center my-5" style="display:none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading schedule...</p>
+        </div>
+
+        <div id="scheduleContainer" class="schedule-grid">
+            <div class="row g-2"></div>
+        </div>
+    </div>
+
+    <!-- Toast for notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/schedule.js"></script>
+</body>
+</html>
