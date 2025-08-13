@@ -86,7 +86,7 @@ class ScheduleDatabase {
         this.db.run(`
             CREATE TABLE IF NOT EXISTS theme_settings (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
-                title TEXT DEFAULT 'Bennett''s Dragon Academy Schedule',
+                title TEXT DEFAULT 'Mrs. Bennett''s Dragon Schedule',
                 subtitle TEXT DEFAULT '2025-2026 Academic Year',
                 background TEXT DEFAULT 'linear-gradient(135deg, #84cc16 0%, #eab308 100%)',
                 header_text_color TEXT DEFAULT '#ffffff',
