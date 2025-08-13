@@ -251,7 +251,7 @@ body {
     gap: 8px;
     font-size: 0.95rem;
     font-weight: 700;
-    padding: 3px 8px;
+    padding: 3px 8px 6px 8px;
     border-radius: 5px;
 }
 
