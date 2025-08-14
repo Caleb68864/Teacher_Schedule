@@ -1,0 +1,165 @@
+# .NET Core / .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.cache
+*.ncb
+*.sdf
+*.opensdf
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Visual Studio 2019/2022 cache/options directory
+.vs/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+publish/
+out/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Core
+*.Development.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+**/wwwroot/dist/
+**/wwwroot/lib/
+
+# Entity Framework
+*.mdf
+*.ldf
+*.ndf
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# Docker
+.dockerignore
+*.dockerignore
+
+# Blazor
+**/wwwroot/service-worker-assets.js
+**/_framework/
+
+# QuestPDF
+*.pdf
+!**/wwwroot/*.pdf
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Coverage
+*.coverage
+*.coveragexml
+coverage.json
+coverage.cobertura.xml
+
+# Playwright
+test-results/
+playwright-report/
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Old HTML/JS files (after migration)
+# Uncomment after verification
+# *.html
+# js/
+# css/
+
+# MCP output
+.mcp/output/
+.mcp/logs/
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Node modules (if any frontend tools are used)
+node_modules/
+
+# Backup files
+*.backup
+*.old
+backups/
+
+# dotnet tools
+.dotnet/
+.tools/

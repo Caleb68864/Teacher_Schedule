@@ -1,0 +1,74 @@
+{
+  "name": "development-tools",
+  "description": "Development workflow MCP for FlyOver Teaching",
+  "version": "1.0.0",
+  "type": "development",
+  "config": {
+    "hotReload": true,
+    "autoRestore": true,
+    "watchPaths": [
+      "FlyOverTeaching.Client/**/*.razor",
+      "FlyOverTeaching.Client/**/*.cs",
+      "FlyOverTeaching.Server/**/*.cs",
+      "FlyOverTeaching.Shared/**/*.cs"
+    ]
+  },
+  "commands": {
+    "dev": "Start development server with hot reload",
+    "build": "Build all projects",
+    "test": "Run all tests",
+    "lint": "Run code quality checks",
+    "format": "Format code using dotnet format",
+    "clean": "Clean build artifacts",
+    "restore": "Restore NuGet packages",
+    "watch": "Watch for file changes and rebuild"
+  },
+  "scripts": {
+    "dev": "dotnet watch run --project FlyOverTeaching.Server",
+    "build": "dotnet build",
+    "test": "dotnet test",
+    "lint": "dotnet format --verify-no-changes",
+    "format": "dotnet format",
+    "clean": "dotnet clean && rm -rf **/bin **/obj",
+    "restore": "dotnet restore"
+  },
+  "vscode": {
+    "launch": {
+      "version": "0.2.0",
+      "configurations": [
+        {
+          "name": "Launch Server",
+          "type": "coreclr",
+          "request": "launch",
+          "preLaunchTask": "build",
+          "program": "${workspaceFolder}/FlyOverTeaching.Server/bin/Debug/net9.0/FlyOverTeaching.Server.dll",
+          "args": [],
+          "cwd": "${workspaceFolder}/FlyOverTeaching.Server",
+          "stopAtEntry": false,
+          "serverReadyAction": {
+            "action": "openExternally",
+            "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+          },
+          "env": {
+            "ASPNETCORE_ENVIRONMENT": "Development"
+          }
+        }
+      ]
+    },
+    "tasks": {
+      "version": "2.0.0",
+      "tasks": [
+        {
+          "label": "build",
+          "command": "dotnet",
+          "type": "process",
+          "args": [
+            "build",
+            "${workspaceFolder}/FlyOverTeaching.sln"
+          ],
+          "problemMatcher": "$msCompile"
+        }
+      ]
+    }
+  }
+}

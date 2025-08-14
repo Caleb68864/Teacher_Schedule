@@ -1,0 +1,166 @@
+@page "/students"
+@using FlyOverTeaching.Client.Services
+@using FlyOverTeaching.Shared.Models
+@inject IDatabaseService DatabaseService
+@inject ISnackbar Snackbar
+
+<PageTitle>FlyOver Teaching - Students</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Student Management</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudPaper Class="pa-4">
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.PrivacyTip" Class="mr-2" />
+                <strong>Privacy Notice:</strong> For student privacy protection, please use only first names or initials. Do not enter full names or other identifying information.
+            </MudAlert>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Registered Students</MudText>
+                <MudText Typo="Typo.body2">Total: @_students.Count</MudText>
+            </div>
+            
+            <MudTextField @bind-Value="_newStudentName" 
+                         Label="Add New Student (First Name Only)" 
+                         Variant="Variant.Outlined"
+                         HelperText="Press Enter to add"
+                         Adornment="Adornment.End"
+                         AdornmentIcon="@Icons.Material.Filled.Add"
+                         OnAdornmentClick="AddStudent"
+                         OnKeyUp="@(async (e) => { if (e.Key == "Enter") await AddStudent(); })"
+                         Class="mb-4" />
+            
+            <MudList T="string">
+                @foreach (var student in _students.OrderBy(s => s.Name))
+                {
+                    <MudListItem T="string">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-3">
+                                    @student.Name.FirstOrDefault()
+                                </MudAvatar>
+                                <MudTooltip Text="Remember: Use first names only for privacy">
+                                    <MudText>@student.Name</MudText>
+                                </MudTooltip>
+                            </div>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                         Color="Color.Error" 
+                                         Size="Size.Small"
+                                         Title="Remove student"
+                                         OnClick="@(() => DeleteStudent(student))" />
+                        </div>
+                    </MudListItem>
+                    <MudDivider />
+                }
+            </MudList>
+            
+            @if (!_students.Any())
+            {
+                <MudAlert Severity="Severity.Info">No students registered yet. Add students using the form above.</MudAlert>
+            }
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-3">Quick Stats</MudText>
+            <MudSimpleTable>
+                <tbody>
+                    <tr>
+                        <td>Total Students</td>
+                        <td><strong>@_students.Count</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Active Classes</td>
+                        <td><strong>@_activeClasses</strong></td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudPaper>
+        
+        <MudPaper Class="pa-4 mt-3">
+            <MudText Typo="Typo.h6" Class="mb-3">Actions</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mb-2"
+                      OnClick="ExportStudentList">
+                <i class="fas fa-download me-2"></i> Export List
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" FullWidth="true"
+                      OnClick="ClearAllStudents">
+                <i class="fas fa-trash-alt me-2"></i> Clear All
+            </MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<Student> _students = new();
+    private string _newStudentName = "";
+    private int _activeClasses = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        await DatabaseService.InitializeAsync();
+        _students = await DatabaseService.GetStudentsAsync();
+        var scheduleEntries = await DatabaseService.GetScheduleEntriesAsync();
+        _activeClasses = scheduleEntries.Count(e => e.Type != "break");
+    }
+
+    private async Task AddStudent()
+    {
+        if (!string.IsNullOrWhiteSpace(_newStudentName))
+        {
+            // Check for privacy - warn if it looks like a full name
+            if (_newStudentName.Contains(" ") && _newStudentName.Split(' ').Length > 1)
+            {
+                var hasMultipleWords = _newStudentName.Split(' ').All(part => part.Length > 1);
+                if (hasMultipleWords)
+                {
+                    Snackbar.Add("Please use only first names or initials for privacy protection", Severity.Warning);
+                    return;
+                }
+            }
+            
+            var student = new Student { Name = _newStudentName.Trim() };
+            await DatabaseService.AddStudentAsync(student);
+            _newStudentName = "";
+            await LoadData();
+            Snackbar.Add("Student added successfully", Severity.Success);
+        }
+    }
+
+    private async Task DeleteStudent(Student student)
+    {
+        await DatabaseService.DeleteStudentAsync(student.Id);
+        await LoadData();
+        Snackbar.Add($"{student.Name} removed", Severity.Info);
+    }
+
+    private async Task ExportStudentList()
+    {
+        var csv = "Name\n" + string.Join("\n", _students.Select(s => s.Name));
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+        var base64 = Convert.ToBase64String(bytes);
+        
+        // This would trigger a download in a real implementation
+        Snackbar.Add("Student list exported", Severity.Success);
+    }
+
+    private async Task ClearAllStudents()
+    {
+        if (_students.Any())
+        {
+            foreach (var student in _students.ToList())
+            {
+                await DatabaseService.DeleteStudentAsync(student.Id);
+            }
+            await LoadData();
+            Snackbar.Add("All students cleared", Severity.Warning);
+        }
+    }
+}

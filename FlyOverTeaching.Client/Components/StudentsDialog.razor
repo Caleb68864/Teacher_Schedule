@@ -1,0 +1,102 @@
+@using FlyOverTeaching.Client.Services
+@using FlyOverTeaching.Shared.Models
+@inject IDatabaseService DatabaseService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.People" Class="mr-3" /> Manage Students
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Class="mb-3">
+                    <MudIcon Icon="@Icons.Material.Filled.PrivacyTip" Class="mr-2" />
+                    <strong>Privacy Notice:</strong> For student privacy protection, please use only first names or initials. Do not enter full names or other identifying information.
+                </MudAlert>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_newStudentName" Label="Add New Student (First Name Only)" 
+                            Variant="Variant.Outlined"
+                            HelperText="Enter student's first name or initials only"
+                            Adornment="Adornment.End"
+                            AdornmentIcon="@Icons.Material.Filled.Add"
+                            OnAdornmentClick="AddStudent"
+                            OnKeyUp="@(async (e) => { if (e.Key == "Enter") await AddStudent(); })" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudList T="string">
+                    @foreach (var student in _students)
+                    {
+                        <MudListItem T="string">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <MudTooltip Text="Remember: Use first names only for privacy">
+                                    <MudText>@student.Name</MudText>
+                                </MudTooltip>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                             Color="Color.Error" 
+                                             Size="Size.Small"
+                                             Title="Remove student"
+                                             OnClick="@(() => DeleteStudent(student))" />
+                            </div>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    
+    private List<Student> _students = new();
+    private string _newStudentName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStudents();
+    }
+
+    private async Task LoadStudents()
+    {
+        _students = await DatabaseService.GetStudentsAsync();
+    }
+
+    private async Task AddStudent()
+    {
+        if (!string.IsNullOrWhiteSpace(_newStudentName))
+        {
+            // Check for privacy - warn if it looks like a full name
+            if (_newStudentName.Contains(" ") && _newStudentName.Split(' ').Length > 1)
+            {
+                var hasMultipleWords = _newStudentName.Split(' ').All(part => part.Length > 1);
+                if (hasMultipleWords)
+                {
+                    Snackbar.Add("Please use only first names or initials for privacy protection", Severity.Warning);
+                    return;
+                }
+            }
+            
+            var student = new Student { Name = _newStudentName.Trim() };
+            await DatabaseService.AddStudentAsync(student);
+            _newStudentName = "";
+            await LoadStudents();
+            Snackbar.Add("Student added", Severity.Success);
+        }
+    }
+
+    private async Task DeleteStudent(Student student)
+    {
+        await DatabaseService.DeleteStudentAsync(student.Id);
+        await LoadStudents();
+        Snackbar.Add("Student removed", Severity.Info);
+    }
+
+    private void Close() => MudDialog.Close();
+}

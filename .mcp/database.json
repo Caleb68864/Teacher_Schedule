@@ -1,0 +1,62 @@
+{
+  "name": "database-tools",
+  "description": "Database management MCP for FlyOver Teaching",
+  "version": "1.0.0",
+  "type": "database",
+  "config": {
+    "type": "sqlite",
+    "migrations": {
+      "directory": "./migrations",
+      "autoRun": true
+    },
+    "backup": {
+      "enabled": true,
+      "schedule": "daily",
+      "retention": 7,
+      "directory": "./backups"
+    }
+  },
+  "commands": {
+    "migrate": "Run database migrations",
+    "backup": "Create database backup",
+    "restore": "Restore from backup",
+    "seed": "Seed database with sample data",
+    "reset": "Reset database to default state",
+    "export": "Export database to JSON",
+    "import": "Import database from JSON"
+  },
+  "schemas": {
+    "schedule": {
+      "table": "schedule_entries",
+      "fields": {
+        "id": "INTEGER PRIMARY KEY",
+        "time_start": "TEXT NOT NULL",
+        "time_end": "TEXT NOT NULL",
+        "subject": "TEXT NOT NULL",
+        "grade": "TEXT",
+        "type": "TEXT DEFAULT 'normal'",
+        "icon": "TEXT DEFAULT 'fa-clock'",
+        "color": "TEXT DEFAULT '#3b82f6'",
+        "note": "TEXT",
+        "day_of_week": "TEXT DEFAULT 'all'",
+        "sort_order": "INTEGER DEFAULT 0"
+      }
+    },
+    "students": {
+      "table": "students",
+      "fields": {
+        "id": "INTEGER PRIMARY KEY",
+        "name": "TEXT NOT NULL UNIQUE"
+      }
+    },
+    "teachers": {
+      "table": "teachers",
+      "fields": {
+        "id": "INTEGER PRIMARY KEY",
+        "name": "TEXT NOT NULL UNIQUE",
+        "email": "TEXT",
+        "phone": "TEXT"
+      }
+    }
+  }
+}

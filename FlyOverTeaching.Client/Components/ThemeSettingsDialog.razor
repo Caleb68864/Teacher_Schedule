@@ -1,0 +1,56 @@
+@using FlyOverTeaching.Client.Services
+@using FlyOverTeaching.Shared.Models
+@inject IDatabaseService DatabaseService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Palette" Class="mr-3" /> Theme Settings
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_settings.Title" Label="Schedule Title" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_settings.Subtitle" Label="Schedule Subtitle" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_settings.Background" Label="Background Gradient" 
+                            HelperText="CSS gradient value" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudColorPicker @bind-Text="_settings.HeaderTextColor" Label="Header Text Color" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudColorPicker @bind-Text="_settings.ControlsTextColor" Label="Controls Text Color" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save Changes</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    
+    private ThemeSettings _settings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await DatabaseService.GetThemeSettingsAsync();
+    }
+
+    private async Task Save()
+    {
+        await DatabaseService.UpdateThemeSettingsAsync(_settings);
+        Snackbar.Add("Theme settings saved", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,178 @@
+@page "/help"
+
+<PageTitle>FlyOver Teaching - Help</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Help & Documentation</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudExpansionPanels Elevation="2">
+            <MudExpansionPanel Text="Getting Started">
+                <MudText Class="mb-3">
+                    Welcome to FlyOver Teaching Schedule Manager! This application helps you organize and manage your teaching schedule efficiently.
+                </MudText>
+                <MudList T="string">
+                    <MudListItem T="string">
+                        <strong>Schedule View:</strong> View your daily teaching schedule with all classes, breaks, and activities
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <strong>Editor:</strong> Add, edit, or remove schedule entries with custom times, subjects, and student assignments
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <strong>Students:</strong> Manage your student roster (remember to use first names only for privacy)
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <strong>Teachers:</strong> Maintain a list of teaching staff with contact information
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <strong>Settings:</strong> Customize the appearance and PDF export options
+                    </MudListItem>
+                </MudList>
+            </MudExpansionPanel>
+            
+            <MudExpansionPanel Text="Managing Your Schedule">
+                <MudText Typo="Typo.h6" Class="mb-2">Adding Schedule Entries</MudText>
+                <MudText Class="mb-3">
+                    1. Navigate to the Editor page<br/>
+                    2. Click the "New" button<br/>
+                    3. Fill in the time, subject, and other details<br/>
+                    4. Select students if applicable<br/>
+                    5. Click "Save" to add the entry
+                </MudText>
+                
+                <MudText Typo="Typo.h6" Class="mb-2">Editing Entries</MudText>
+                <MudText Class="mb-3">
+                    Click on any entry in the Editor's left panel to load it for editing. Make your changes and click "Save".
+                </MudText>
+                
+                <MudText Typo="Typo.h6" Class="mb-2">Filtering by Day</MudText>
+                <MudText>
+                    Use the day filter dropdown on the Schedule page to view entries for specific days of the week.
+                </MudText>
+            </MudExpansionPanel>
+            
+            <MudExpansionPanel Text="Privacy & Security">
+                <MudAlert Severity="Severity.Warning" Class="mb-3">
+                    <strong>Important Privacy Guidelines:</strong>
+                </MudAlert>
+                <MudList T="string">
+                    <MudListItem T="string">
+                        • Use only first names or initials for students
+                    </MudListItem>
+                    <MudListItem T="string">
+                        • Do not enter personally identifiable information
+                    </MudListItem>
+                    <MudListItem T="string">
+                        • All data is stored locally in your browser
+                    </MudListItem>
+                    <MudListItem T="string">
+                        • No data is sent to external servers
+                    </MudListItem>
+                    <MudListItem T="string">
+                        • Regular backups are recommended using the Export feature
+                    </MudListItem>
+                </MudList>
+            </MudExpansionPanel>
+            
+            <MudExpansionPanel Text="Exporting & Printing">
+                <MudText Typo="Typo.h6" Class="mb-2">Export to PDF</MudText>
+                <MudText Class="mb-3">
+                    Click the "Export PDF" button on the Schedule page to generate a professionally formatted PDF of your schedule. 
+                    Customize PDF settings in the Settings page.
+                </MudText>
+                
+                <MudText Typo="Typo.h6" Class="mb-2">Export to JSON</MudText>
+                <MudText Class="mb-3">
+                    Use "Export JSON" to create a backup of your entire schedule that can be imported later or shared with others.
+                </MudText>
+                
+                <MudText Typo="Typo.h6" Class="mb-2">Printing</MudText>
+                <MudText>
+                    For best results, export to PDF first, then print the PDF document.
+                </MudText>
+            </MudExpansionPanel>
+            
+            <MudExpansionPanel Text="Troubleshooting">
+                <MudText Typo="Typo.h6" Class="mb-2">Data Not Saving?</MudText>
+                <MudText Class="mb-3">
+                    Ensure your browser allows local storage. Check that you're not in private/incognito mode.
+                </MudText>
+                
+                <MudText Typo="Typo.h6" Class="mb-2">Schedule Not Displaying?</MudText>
+                <MudText Class="mb-3">
+                    Try clicking the "Refresh" button. If issues persist, check the browser console for errors.
+                </MudText>
+                
+                <MudText Typo="Typo.h6" Class="mb-2">Lost Data?</MudText>
+                <MudText>
+                    If you have a JSON backup, use the "Import JSON" feature to restore your data.
+                </MudText>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudItem>
+    
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4 mb-3">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                <i class="fas fa-keyboard me-2"></i> Keyboard Shortcuts
+            </MudText>
+            <MudSimpleTable Dense="true">
+                <tbody>
+                    <tr>
+                        <td><kbd>Ctrl</kbd> + <kbd>S</kbd></td>
+                        <td>Save current entry</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Ctrl</kbd> + <kbd>N</kbd></td>
+                        <td>New entry</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Ctrl</kbd> + <kbd>P</kbd></td>
+                        <td>Export PDF</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Esc</kbd></td>
+                        <td>Cancel/Close dialog</td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudPaper>
+        
+        <MudPaper Class="pa-4 mb-3">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                <i class="fas fa-info-circle me-2"></i> Quick Tips
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string">
+                    💡 Use color coding to distinguish between different types of activities
+                </MudListItem>
+                <MudListItem T="string">
+                    💡 Add notes to entries for special instructions
+                </MudListItem>
+                <MudListItem T="string">
+                    💡 Export your schedule weekly for backup
+                </MudListItem>
+                <MudListItem T="string">
+                    💡 Use the compact view for printing
+                </MudListItem>
+            </MudList>
+        </MudPaper>
+        
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                <i class="fas fa-question-circle me-2"></i> Support
+            </MudText>
+            <MudText Class="mb-2">
+                For additional help or to report issues, please contact your system administrator.
+            </MudText>
+            <MudText Typo="Typo.caption">
+                Version: 1.0.0<br/>
+                © 2024 FlyOver Teaching
+            </MudText>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    
+}

@@ -1,0 +1,41 @@
+{
+  "name": "playwright-testing",
+  "description": "Playwright MCP for UI testing of FlyOver Teaching application",
+  "version": "1.0.0",
+  "type": "playwright",
+  "config": {
+    "baseUrl": "http://localhost:5000",
+    "browser": "chromium",
+    "headless": false,
+    "timeout": 30000,
+    "testDir": "./tests/e2e",
+    "outputDir": "./test-results"
+  },
+  "testSuites": {
+    "smoke": {
+      "description": "Basic smoke tests",
+      "tests": [
+        "navigation",
+        "schedule-display",
+        "pdf-export"
+      ]
+    },
+    "full": {
+      "description": "Full regression suite",
+      "tests": [
+        "navigation",
+        "schedule-crud",
+        "student-management",
+        "theme-settings",
+        "pdf-export",
+        "data-persistence"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "codegen": "playwright codegen http://localhost:5000"
+  }
+}

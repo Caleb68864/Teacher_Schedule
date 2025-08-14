@@ -1,0 +1,837 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    background: linear-gradient(135deg, #84cc16 0%, #eab308 100%);
+}
+
+/* Navbar */
+.navbar {
+    background: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.3s ease;
+    margin: 0 5px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: white !important;
+    transform: translateY(-2px);
+}
+
+.navbar-nav .nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white !important;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin: 20px 0;
+    animation: fadeInDown 0.8s ease;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 5px;
+}
+
+.header p {
+    font-size: 1rem;
+}
+
+/* Controls */
+.controls {
+    background: #fef3c7;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.8s ease;
+}
+
+.controls h3 {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    color: #365314;
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #16a34a 0%, #84cc16 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-info {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #2563eb;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+/* View Toggle */
+.view-toggle {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.view-btn {
+    padding: 6px 12px;
+    border: 2px solid #16a34a;
+    background: white;
+    color: #16a34a;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 12px;
+}
+
+.view-btn.active {
+    background: #16a34a;
+    color: white;
+}
+
+/* Filter Controls */
+.filter-controls {
+    max-width: 300px;
+}
+
+.filter-controls .form-select {
+    border: 2px solid #16a34a;
+    border-radius: 6px;
+}
+
+/* Schedule Grid */
+.schedule-grid {
+    animation: fadeInUp 1s ease;
+}
+
+/* Time Slot */
+.time-slot {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 3px solid;
+    opacity: 0;
+    animation: slideIn 0.5s ease forwards;
+    height: 100%;
+    min-height: 110px;
+    position: relative;
+}
+
+.time-slot:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.time-slot:hover .edit-btn {
+    opacity: 1;
+}
+
+/* Edit Button on Schedule Cards */
+.edit-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(59, 130, 246, 0.9);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-size: 12px;
+}
+
+.edit-btn:hover {
+    background: #2563eb;
+    transform: scale(1.1);
+}
+
+/* Time Header */
+.time-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.time-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 3px 8px 6px 8px;
+    border-radius: 5px;
+}
+
+.time-range i {
+    font-size: 0.9rem;
+}
+
+/* Grade Badge */
+.grade-badge {
+    background: linear-gradient(135deg, #16a34a 0%, #84cc16 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.grade-badge:before {
+    content: "Grade";
+    font-size: 0.7rem;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+/* Subject */
+.subject {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+/* Students */
+.students {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.student-chip {
+    background: #f5f5f5;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.student-chip i {
+    color: #9ca3af;
+    font-size: 0.65rem;
+}
+
+/* Teachers */
+.teachers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.teacher-chip {
+    background: #dbeafe;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #1e40af;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #93c5fd;
+}
+
+.teacher-chip i {
+    color: #3b82f6;
+    font-size: 0.7rem;
+}
+
+/* Note */
+.note {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: #fef3c7;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.note i {
+    color: #f59e0b;
+    font-size: 0.75rem;
+}
+
+/* Compact View */
+.compact-view .time-slot {
+    padding: 8px;
+    min-height: 80px;
+}
+
+.compact-view .subject {
+    font-size: 0.9rem;
+}
+
+.compact-view .students {
+    display: none;
+}
+
+.compact-view .note {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+}
+
+/* Editor Specific Styles */
+.student-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.list-group-item.active {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #16a34a 0%, #84cc16 100%);
+    color: white;
+    font-weight: bold;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border-radius: 6px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.25);
+}
+
+.form-control-color {
+    width: 50px;
+    height: 38px;
+    cursor: pointer;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Toast */
+.toast {
+    min-width: 250px;
+}
+
+/* Modal */
+.modal-header {
+    background: linear-gradient(135deg, #16a34a 0%, #84cc16 100%);
+    color: white;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Help Page Styles */
+.help-container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px auto;
+    max-width: 1200px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.help-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.help-section:last-child {
+    border-bottom: none;
+}
+
+.help-section h2 {
+    color: #16a34a;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.help-section h3 {
+    color: #365314;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #16a34a;
+}
+
+.feature-list li strong {
+    color: #16a34a;
+}
+
+.keyboard-shortcut {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+    border: 1px solid #dee2e6;
+}
+
+.tip-box {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.tip-box h4 {
+    color: #155724;
+    margin-bottom: 10px;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.warning-box h4 {
+    color: #856404;
+    margin-bottom: 10px;
+}
+
+/* Tooltip Styles */
+[data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+
+/* Print Mode Helper Class */
+.print-mode .schedule-grid .row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start !important;
+}
+
+.print-mode .time-slot {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+/* Print Styles */
+@media print {
+    @page {
+        size: landscape;
+        margin: 0.5in 0.75in;
+    }
+    
+    @page :first {
+        margin-top: 0.3in;
+    }
+    
+    @page :left {
+        margin-left: 0.5in;
+        margin-right: 0.75in;
+    }
+    
+    @page :right {
+        margin-left: 0.75in;
+        margin-right: 0.5in;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 10pt !important;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .navbar,
+    .controls,
+    .edit-btn,
+    .toast,
+    #toast,
+    #loadingSpinner {
+        display: none !important;
+    }
+
+    .header {
+        color: black !important;
+        margin: 0 0 20px 0 !important;
+        padding: 10px 0 !important;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+        text-align: center !important;
+    }
+
+    .header h1 {
+        color: black !important;
+        text-shadow: none !important;
+        font-size: 1.5rem !important;
+        margin-bottom: 5px !important;
+    }
+    
+    .header p {
+        color: black !important;
+        font-size: 0.9rem !important;
+        margin: 0 !important;
+    }
+
+    .schedule-grid {
+        animation: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .schedule-grid .row {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        /* Use CSS Grid with 3 columns for more reliable print layout */
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+        align-items: start !important;
+        page-break-inside: auto;
+    }
+
+    /* Reset Bootstrap column classes for print */
+    .col-12.col-md-6.col-lg-4.col-xl-3 {
+        flex: none !important;
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: block !important;
+        grid-column: span 1 !important;
+    }
+
+    .time-slot {
+        box-shadow: none !important;
+        border: 2px solid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        padding: 8px !important;
+        margin: 0 0 10px 0 !important;
+        min-height: auto !important;
+        height: auto !important;
+        animation: none !important;
+        opacity: 1 !important;
+        position: relative !important;
+        display: block !important;
+        background: white !important;
+    }
+
+    /* Ensure time slots don't break across pages */
+    .time-slot * {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .time-header {
+        margin-bottom: 5px !important;
+        page-break-inside: avoid !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    .time-range {
+        font-size: 0.8rem !important;
+        padding: 2px 5px !important;
+        page-break-inside: avoid !important;
+    }
+
+    .grade-badge {
+        font-size: 0.7rem !important;
+        padding: 2px 6px !important;
+        background: #16a34a !important;
+        color: white !important;
+        page-break-inside: avoid !important;
+    }
+
+    .subject {
+        font-size: 0.85rem !important;
+        margin-bottom: 5px !important;
+        font-weight: 600 !important;
+        page-break-inside: avoid !important;
+    }
+
+    .students,
+    .teachers {
+        margin-top: 3px !important;
+        page-break-inside: avoid !important;
+    }
+
+    .student-chip,
+    .teacher-chip {
+        font-size: 0.65rem !important;
+        padding: 1px 4px !important;
+        margin: 1px !important;
+        display: inline-block !important;
+        page-break-inside: avoid !important;
+    }
+
+    .student-chip {
+        background: #f0f0f0 !important;
+        color: #333 !important;
+    }
+
+    .teacher-chip {
+        background: #e0e0e0 !important;
+        color: #1a1a1a !important;
+        border: 1px solid #999 !important;
+    }
+
+    .note {
+        font-size: 0.65rem !important;
+        padding: 2px 5px !important;
+        margin-top: 3px !important;
+        background: #fffacd !important;
+        color: #333 !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Page breaking for 3-column layout - break after every 4 rows (12 items) */
+    .schedule-grid .row > div:nth-child(12n+1):not(:first-child) {
+        page-break-before: always !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Ensure proper spacing at top of each page */
+    .schedule-grid .row > div {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Compact view adjustments for print */
+    .compact-view .time-slot {
+        padding: 5px !important;
+        min-height: auto !important;
+    }
+
+    .compact-view .students,
+    .compact-view .teachers {
+        display: none !important;
+    }
+
+    .compact-view .note {
+        font-size: 0.6rem !important;
+        padding: 1px 3px !important;
+    }
+
+    /* Remove animations and transitions */
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    /* Ensure proper page breaks */
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid !important;
+    }
+
+    /* Prevent orphaned headers */
+    .card-header {
+        page-break-after: avoid !important;
+    }
+
+    /* Hide tooltips */
+    .tooltip,
+    [data-bs-toggle="tooltip"]:after,
+    [data-bs-toggle="tooltip"]:before {
+        display: none !important;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .time-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .student-checkbox-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}

@@ -1,0 +1,193 @@
+@page "/teachers"
+@using FlyOverTeaching.Client.Services
+@using FlyOverTeaching.Shared.Models
+@inject IDatabaseService DatabaseService
+@inject ISnackbar Snackbar
+
+<PageTitle>FlyOver Teaching - Teachers</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Teacher Management</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudPaper Class="pa-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Teaching Staff</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="OpenAddDialog">
+                    <i class="fas fa-plus me-2"></i> Add Teacher
+                </MudButton>
+            </div>
+            
+            <MudTable Items="_teachers" Hover="true" Striped="true">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Email</MudTh>
+                    <MudTh>Phone</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">
+                        <div class="d-flex align-items-center">
+                            <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-2">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </MudAvatar>
+                            @context.Name
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Email">
+                        @(context.Email ?? "-")
+                    </MudTd>
+                    <MudTd DataLabel="Phone">
+                        @(context.Phone ?? "-")
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                     Color="Color.Info" 
+                                     Size="Size.Small"
+                                     Title="Edit teacher"
+                                     OnClick="@(() => EditTeacher(context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                     Color="Color.Error" 
+                                     Size="Size.Small"
+                                     Title="Remove teacher"
+                                     OnClick="@(() => DeleteTeacher(context))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+            
+            @if (!_teachers.Any())
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-3">No teachers registered yet. Click "Add Teacher" to get started.</MudAlert>
+            }
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-3">Quick Stats</MudText>
+            <MudSimpleTable>
+                <tbody>
+                    <tr>
+                        <td>Total Teachers</td>
+                        <td><strong>@_teachers.Count</strong></td>
+                    </tr>
+                    <tr>
+                        <td>With Email</td>
+                        <td><strong>@_teachers.Count(t => !string.IsNullOrEmpty(t.Email))</strong></td>
+                    </tr>
+                    <tr>
+                        <td>With Phone</td>
+                        <td><strong>@_teachers.Count(t => !string.IsNullOrEmpty(t.Phone))</strong></td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<!-- Add/Edit Dialog -->
+<MudDialog @bind-IsVisible="_dialogVisible">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(_editingTeacher?.Id > 0 ? "Edit Teacher" : "Add New Teacher")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_editingTeacher.Name" 
+                         Label="Name" 
+                         Required="true"
+                         RequiredError="Name is required"
+                         Variant="Variant.Outlined"
+                         Class="mb-3" />
+            
+            <MudTextField @bind-Value="_editingTeacher.Email" 
+                         Label="Email" 
+                         InputType="InputType.Email"
+                         Variant="Variant.Outlined"
+                         Class="mb-3" />
+            
+            <MudTextField @bind-Value="_editingTeacher.Phone" 
+                         Label="Phone" 
+                         InputType="InputType.Telephone"
+                         Variant="Variant.Outlined" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveTeacher">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<Teacher> _teachers = new();
+    private Teacher _editingTeacher = new();
+    private bool _dialogVisible = false;
+    private MudForm? _form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTeachers();
+    }
+
+    private async Task LoadTeachers()
+    {
+        await DatabaseService.InitializeAsync();
+        _teachers = await DatabaseService.GetTeachersAsync();
+    }
+
+    private void OpenAddDialog()
+    {
+        _editingTeacher = new Teacher();
+        _dialogVisible = true;
+    }
+
+    private void EditTeacher(Teacher teacher)
+    {
+        _editingTeacher = new Teacher
+        {
+            Id = teacher.Id,
+            Name = teacher.Name,
+            Email = teacher.Email,
+            Phone = teacher.Phone
+        };
+        _dialogVisible = true;
+    }
+
+    private async Task SaveTeacher()
+    {
+        if (_form != null)
+        {
+            await _form.Validate();
+            if (_form.IsValid)
+            {
+                if (_editingTeacher.Id > 0)
+                {
+                    await DatabaseService.UpdateTeacherAsync(_editingTeacher);
+                    Snackbar.Add("Teacher updated successfully", Severity.Success);
+                }
+                else
+                {
+                    await DatabaseService.AddTeacherAsync(_editingTeacher);
+                    Snackbar.Add("Teacher added successfully", Severity.Success);
+                }
+                
+                await LoadTeachers();
+                CloseDialog();
+            }
+        }
+    }
+
+    private async Task DeleteTeacher(Teacher teacher)
+    {
+        await DatabaseService.DeleteTeacherAsync(teacher.Id);
+        await LoadTeachers();
+        Snackbar.Add($"{teacher.Name} removed", Severity.Info);
+    }
+
+    private void CloseDialog()
+    {
+        _dialogVisible = false;
+        _editingTeacher = new Teacher();
+    }
+}

@@ -1,0 +1,73 @@
+@using FlyOverTeaching.Client.Services
+@using FlyOverTeaching.Shared.Models
+@inject IDatabaseService DatabaseService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-3" /> PDF Export Settings
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudSelect @bind-Value="_settings.Orientation" Label="Page Orientation" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("portrait")">Portrait</MudSelectItem>
+                    <MudSelectItem Value="@("landscape")">Landscape</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudSelect @bind-Value="_settings.PageSize" Label="Page Size" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("letter")">Letter</MudSelectItem>
+                    <MudSelectItem Value="@("a4")">A4</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudNumericField @bind-Value="_settings.FontSize" Label="Font Size" Min="8" Max="16" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudNumericField @bind-Value="_settings.MarginTop" Label="Top Margin (inches)" Min="0.1f" Max="2" Step="0.1f" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_settings.IncludeHeader" Label="Include Header" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_settings.IncludeFooter" Label="Include Footer (Page Numbers)" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_settings.IncludeStudents" Label="Include Student Names" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_settings.IncludeNotes" Label="Include Notes" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_settings.UseColors" Label="Use Colors in PDF" Color="Color.Primary" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save Settings</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    
+    private PdfSettings _settings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await DatabaseService.GetPdfSettingsAsync();
+    }
+
+    private async Task Save()
+    {
+        await DatabaseService.UpdatePdfSettingsAsync(_settings);
+        Snackbar.Add("PDF settings saved", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

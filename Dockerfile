@@ -1,35 +1,38 @@
-# Use nginx to serve static files
-FROM nginx:alpine
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
 
-# Copy all files to nginx html directory
-COPY index.html /usr/share/nginx/html/
-COPY editor.html /usr/share/nginx/html/
-COPY help.html /usr/share/nginx/html/
-COPY css/ /usr/share/nginx/html/css/
-COPY js/ /usr/share/nginx/html/js/
+# Copy solution and project files
+COPY ["FlyOverTeaching.sln", "./"]
+COPY ["FlyOverTeaching.Server/FlyOverTeaching.Server.csproj", "FlyOverTeaching.Server/"]
+COPY ["FlyOverTeaching.Client/FlyOverTeaching.Client.csproj", "FlyOverTeaching.Client/"]
+COPY ["FlyOverTeaching.Shared/FlyOverTeaching.Shared.csproj", "FlyOverTeaching.Shared/"]
 
-# Create nginx configuration for proper MIME types
-RUN echo 'server { \
-    listen 80; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-    \
-    location ~* \.(js)$ { \
-        add_header Content-Type application/javascript; \
-    } \
-    \
-    location ~* \.(css)$ { \
-        add_header Content-Type text/css; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Restore dependencies
+RUN dotnet restore
 
-# Expose port 80
+# Copy everything else
+COPY . .
+
+# Build the application
+WORKDIR "/src/FlyOverTeaching.Server"
+RUN dotnet build -c Release -o /app/build
+
+# Publish stage
+FROM build AS publish
+RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
 EXPOSE 80
+EXPOSE 443
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Install necessary libraries for QuestPDF
+RUN apt-get update && \
+    apt-get install -y libgdiplus libc6-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "FlyOverTeaching.Server.dll"]

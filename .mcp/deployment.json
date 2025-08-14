@@ -1,0 +1,64 @@
+{
+  "name": "deployment-tools",
+  "description": "Deployment and CI/CD MCP for FlyOver Teaching",
+  "version": "1.0.0",
+  "type": "deployment",
+  "config": {
+    "docker": {
+      "registry": "docker.io",
+      "namespace": "flyoverteaching",
+      "buildArgs": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      }
+    },
+    "environments": {
+      "development": {
+        "url": "http://localhost:5000",
+        "dotnetEnv": "Development",
+        "debug": true
+      },
+      "staging": {
+        "url": "https://staging.flyoverteaching.com",
+        "dotnetEnv": "Staging",
+        "debug": false
+      },
+      "production": {
+        "url": "https://flyoverteaching.com",
+        "dotnetEnv": "Production",
+        "debug": false
+      }
+    }
+  },
+  "pipelines": {
+    "build": {
+      "steps": [
+        "dotnet restore",
+        "dotnet build --configuration Release",
+        "dotnet test --no-build --configuration Release"
+      ]
+    },
+    "publish": {
+      "steps": [
+        "dotnet publish -c Release -o ./publish",
+        "docker build -t flyoverteaching:latest .",
+        "docker push flyoverteaching:latest"
+      ]
+    },
+    "deploy": {
+      "steps": [
+        "docker-compose down",
+        "docker-compose pull",
+        "docker-compose up -d",
+        "health-check"
+      ]
+    }
+  },
+  "healthChecks": {
+    "endpoints": [
+      "/health",
+      "/api/pdf/health"
+    ],
+    "timeout": 30,
+    "retries": 3
+  }
+}

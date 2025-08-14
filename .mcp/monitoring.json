@@ -1,0 +1,70 @@
+{
+  "name": "monitoring-tools",
+  "description": "Monitoring and observability MCP for FlyOver Teaching",
+  "version": "1.0.0",
+  "type": "monitoring",
+  "config": {
+    "metrics": {
+      "enabled": true,
+      "endpoint": "/metrics",
+      "interval": 60
+    },
+    "logging": {
+      "level": "Information",
+      "outputs": ["console", "file"],
+      "fileRotation": {
+        "maxFileSize": "10MB",
+        "maxFiles": 10
+      }
+    },
+    "tracing": {
+      "enabled": true,
+      "sampling": 0.1
+    }
+  },
+  "alerts": {
+    "highErrorRate": {
+      "condition": "error_rate > 0.05",
+      "severity": "warning",
+      "notification": "email"
+    },
+    "slowResponse": {
+      "condition": "response_time > 2000",
+      "severity": "info",
+      "notification": "slack"
+    },
+    "serverDown": {
+      "condition": "health_check_failed",
+      "severity": "critical",
+      "notification": ["email", "sms"]
+    }
+  },
+  "dashboards": {
+    "overview": {
+      "widgets": [
+        "request_rate",
+        "response_time",
+        "error_rate",
+        "active_users"
+      ]
+    },
+    "performance": {
+      "widgets": [
+        "cpu_usage",
+        "memory_usage",
+        "database_queries",
+        "pdf_generation_time"
+      ]
+    }
+  },
+  "integrations": {
+    "prometheus": {
+      "enabled": true,
+      "port": 9090
+    },
+    "grafana": {
+      "enabled": true,
+      "dashboardId": "flyover-teaching"
+    }
+  }
+}

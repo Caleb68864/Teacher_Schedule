@@ -1,0 +1,235 @@
+@page "/"
+@using FlyOverTeaching.Client.Services
+@using FlyOverTeaching.Shared.Models
+@inject IScheduleService ScheduleService
+@inject IDatabaseService DatabaseService
+@inject IPdfService PdfService
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+
+<PageTitle>FlyOver Teaching - Schedule</PageTitle>
+
+<MudPaper Class="pa-4 mb-4" Style="@($"background: {_themeSettings?.Background}; color: {_themeSettings?.HeaderTextColor}")">
+    <MudText Typo="Typo.h3" Class="text-center mb-2" Style="@($"text-shadow: {_themeSettings?.HeaderTextShadow}")">
+        @(_themeSettings?.Title ?? "Teaching Schedule")
+    </MudText>
+    <MudText Typo="Typo.h6" Class="text-center" Style="@($"text-shadow: {_themeSettings?.HeaderTextShadow}")">
+        @(_themeSettings?.Subtitle ?? "Academic Year")
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="pa-4 mb-4" Style="@($"background: {_themeSettings?.ControlsBackground}")">
+    <MudText Typo="Typo.h5" Class="mb-3">
+        <i class="fas fa-cog"></i> Schedule Controls
+    </MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary">
+                <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="RefreshSchedule">
+                    Refresh
+                </MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.Download" OnClick="ExportJSON">
+                    Export JSON
+                </MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.Upload" OnClick="ImportJSON">
+                    Import JSON
+                </MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Secondary" OnClick="ExportPDF">
+                    Export PDF
+                </MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.RestartAlt" Color="Color.Warning" OnClick="ResetToDefaults">
+                    Reset to Defaults
+                </MudButton>
+            </MudButtonGroup>
+        </MudItem>
+        
+        <MudItem xs="12" md="4">
+            <MudSelect T="string" Label="Filter by Day" @bind-Value="_selectedDay" Variant="Variant.Outlined">
+                <MudSelectItem Value="@("all")">All Days</MudSelectItem>
+                <MudSelectItem Value="@("monday")">Monday</MudSelectItem>
+                <MudSelectItem Value="@("tuesday")">Tuesday</MudSelectItem>
+                <MudSelectItem Value="@("wednesday")">Wednesday</MudSelectItem>
+                <MudSelectItem Value="@("thursday")">Thursday</MudSelectItem>
+                <MudSelectItem Value="@("friday")">Friday</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+    
+    <MudRadioGroup @bind-Value="_viewMode" Class="mt-3">
+        <MudRadio Value="@("detailed")" Color="Color.Primary">
+            <i class="fas fa-expand"></i> Detailed View
+        </MudRadio>
+        <MudRadio Value="@("compact")" Color="Color.Primary">
+            <i class="fas fa-compress"></i> Compact View
+        </MudRadio>
+    </MudRadioGroup>
+</MudPaper>
+
+@if (_isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto d-block" />
+}
+else if (_scheduleEntries.Any())
+{
+    <MudGrid>
+        @foreach (var entry in _filteredEntries)
+        {
+            <MudItem xs="12" md="@(_viewMode == "detailed" ? 6 : 4)">
+                <MudCard Style="@($"border-left: 5px solid {entry.Color}")">
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="2">
+                                <MudAvatar Color="Color.Primary" Variant="Variant.Outlined">
+                                    <i class="fas @entry.Icon"></i>
+                                </MudAvatar>
+                            </MudItem>
+                            <MudItem xs="10">
+                                <MudText Typo="Typo.h6">@entry.Subject</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    <i class="fas fa-clock"></i> @entry.TimeRange
+                                </MudText>
+                                @if (!string.IsNullOrEmpty(entry.Grade))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@entry.Grade</MudChip>
+                                }
+                                @if (_viewMode == "detailed")
+                                {
+                                    @if (entry.Students.Any())
+                                    {
+                                        <MudText Typo="Typo.caption" Class="mt-2">
+                                            <strong>Students:</strong> @string.Join(", ", entry.Students.Select(s => s.Name))
+                                        </MudText>
+                                    }
+                                    @if (!string.IsNullOrEmpty(entry.Note))
+                                    {
+                                        <MudText Typo="Typo.caption" Class="mt-1">
+                                            <strong>Note:</strong> @entry.Note
+                                        </MudText>
+                                    }
+                                }
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+else
+{
+    <MudAlert Severity="Severity.Info">No schedule entries found. Please add entries in the Editor.</MudAlert>
+}
+
+<InputFile id="fileInput" OnChange="HandleFileSelected" hidden accept=".json" />
+
+@code {
+    private List<ScheduleEntry> _scheduleEntries = new();
+    private List<ScheduleEntry> _filteredEntries = new();
+    private ThemeSettings? _themeSettings;
+    private string _selectedDay = "all";
+    private string _viewMode = "detailed";
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSchedule();
+        ScheduleService.OnScheduleChanged += async () => await LoadSchedule();
+    }
+
+    private async Task LoadSchedule()
+    {
+        _isLoading = true;
+        await DatabaseService.InitializeAsync();
+        _scheduleEntries = await ScheduleService.GetScheduleAsync();
+        _themeSettings = await DatabaseService.GetThemeSettingsAsync();
+        ApplyFilter();
+        _isLoading = false;
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredEntries = _selectedDay == "all" 
+            ? _scheduleEntries 
+            : _scheduleEntries.Where(e => e.DayOfWeek.ToLower() == _selectedDay || e.DayOfWeek == "all").ToList();
+    }
+
+    private async Task RefreshSchedule()
+    {
+        await LoadSchedule();
+        Snackbar.Add("Schedule refreshed", Severity.Success);
+    }
+
+    private async Task ExportJSON()
+    {
+        var data = new
+        {
+            schedule = _scheduleEntries,
+            theme = _themeSettings
+        };
+        
+        var json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        var base64 = Convert.ToBase64String(bytes);
+        
+        await JSRuntime.InvokeVoidAsync("downloadFile", "schedule.json", base64);
+        Snackbar.Add("Schedule exported successfully", Severity.Success);
+    }
+
+    private async Task ImportJSON()
+    {
+        await JSRuntime.InvokeVoidAsync("document.getElementById('fileInput').click");
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+            
+            await DatabaseService.ImportDatabaseAsync(json);
+            await LoadSchedule();
+            Snackbar.Add("Schedule imported successfully", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Failed to import schedule", Severity.Error);
+        }
+    }
+
+    private async Task ExportPDF()
+    {
+        try
+        {
+            var pdfSettings = await DatabaseService.GetPdfSettingsAsync();
+            var pdfBytes = await PdfService.GeneratePdfAsync(_filteredEntries, _themeSettings!, pdfSettings);
+            var base64 = Convert.ToBase64String(pdfBytes);
+            
+            await JSRuntime.InvokeVoidAsync("downloadFile", "schedule.pdf", base64);
+            Snackbar.Add("PDF exported successfully", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Failed to generate PDF", Severity.Error);
+        }
+    }
+
+    private async Task ResetToDefaults()
+    {
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to reset to default schedule? This will erase all your changes.");
+        if (result)
+        {
+            await DatabaseService.ResetToDefaultsAsync();
+            await LoadSchedule();
+            Snackbar.Add("Schedule reset to defaults", Severity.Warning);
+        }
+    }
+
+    public void Dispose()
+    {
+        ScheduleService.OnScheduleChanged -= async () => await LoadSchedule();
+    }
+}
