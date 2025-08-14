@@ -1,0 +1,390 @@
+<script>
+// Year Selector Component
+app.component('year-selector', {
+  template: `
+    <div class="year-selector-container">
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center">
+          <label class="form-label mb-0 me-2">
+            <i class="fas fa-calendar-alt me-1"></i>
+            Academic Year:
+          </label>
+          <select class="form-select form-select-sm" 
+                  v-model="selectedYear" 
+                  @change="changeYear"
+                  style="width: auto;"
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom"
+                  title="Select academic year to view/edit data">
+            <option v-for="year in availableYears" :key="year" :value="year">
+              {{ year }} - {{ parseInt(year) + 1 }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-outline-primary" 
+                  @click="showNewYearModal"
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom"
+                  title="Start a new academic year">
+            <i class="fas fa-plus"></i> New Year
+          </button>
+          <button class="btn btn-outline-success" 
+                  @click="showCopyModal"
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom"
+                  title="Copy students and schedule to new year">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <button class="btn btn-outline-info" 
+                  @click="showArchiveModal"
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom"
+                  title="Archive old year data">
+            <i class="fas fa-archive"></i> Archive
+          </button>
+        </div>
+      </div>
+      
+      <!-- New Year Modal -->
+      <div class="modal fade" ref="newYearModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Start New Academic Year</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Academic Year Start</label>
+                <input type="number" class="form-control" v-model="newYear" 
+                       :min="currentYear" :max="currentYear + 5"
+                       placeholder="e.g., 2024">
+                <small class="text-muted">Enter the starting year (e.g., 2024 for 2024-2025)</small>
+              </div>
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                This will create a new academic year {{ newYear }}-{{ parseInt(newYear) + 1 }}.
+                Your current data will remain accessible by switching years.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" @click="createNewYear">
+                <i class="fas fa-plus me-2"></i>Create Year
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Copy Year Modal -->
+      <div class="modal fade" ref="copyModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Copy Data to New Year</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Copy From Year</label>
+                <select class="form-select" v-model="copyFromYear">
+                  <option v-for="year in availableYears" :key="year" :value="year">
+                    {{ year }} - {{ parseInt(year) + 1 }}
+                  </option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Copy To Year</label>
+                <input type="number" class="form-control" v-model="copyToYear" 
+                       :min="currentYear" :max="currentYear + 5">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">What to Copy</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" v-model="copyOptions.students" id="copyStudents">
+                  <label class="form-check-label" for="copyStudents">
+                    Students (promotes to next grade)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" v-model="copyOptions.schedule" id="copySchedule">
+                  <label class="form-check-label" for="copySchedule">
+                    Schedule Template
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" v-model="copyOptions.settings" id="copySettings">
+                  <label class="form-check-label" for="copySettings">
+                    Settings & Preferences
+                  </label>
+                </div>
+              </div>
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Behavior data and IEP records will NOT be copied. Start fresh for the new year.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-success" @click="copyYear" :disabled="copying">
+                <span v-if="!copying">
+                  <i class="fas fa-copy me-2"></i>Copy Data
+                </span>
+                <span v-else>
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Copying...
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Archive Modal -->
+      <div class="modal fade" ref="archiveModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Archive Year Data</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Year to Archive</label>
+                <select class="form-select" v-model="archiveYear">
+                  <option v-for="year in availableYears.filter(y => y !== selectedYear)" 
+                          :key="year" :value="year">
+                    {{ year }} - {{ parseInt(year) + 1 }}
+                  </option>
+                </select>
+              </div>
+              <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Warning:</strong> Archiving will export the data to a backup sheet 
+                and remove it from the active database. This action cannot be undone automatically.
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" v-model="confirmArchive" id="confirmArchive">
+                <label class="form-check-label" for="confirmArchive">
+                  I understand this will permanently archive the data
+                </label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-danger" @click="archiveYearData" 
+                      :disabled="!confirmArchive || archiving">
+                <span v-if="!archiving">
+                  <i class="fas fa-archive me-2"></i>Archive Year
+                </span>
+                <span v-else>
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Archiving...
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  data() {
+    return {
+      selectedYear: '',
+      availableYears: [],
+      currentYear: new Date().getFullYear(),
+      newYear: new Date().getFullYear(),
+      copyFromYear: '',
+      copyToYear: new Date().getFullYear() + 1,
+      copyOptions: {
+        students: true,
+        schedule: true,
+        settings: true
+      },
+      copying: false,
+      archiveYear: '',
+      confirmArchive: false,
+      archiving: false
+    };
+  },
+  mounted() {
+    this.loadYears();
+  },
+  methods: {
+    loadYears() {
+      google.script.run
+        .withSuccessHandler(years => {
+          this.availableYears = years;
+          if (!this.selectedYear && years.length > 0) {
+            this.selectedYear = years[0];
+          }
+        })
+        .withFailureHandler(error => {
+          console.error('Failed to load years:', error);
+        })
+        .getAllYears();
+      
+      // Get current selected year
+      google.script.run
+        .withSuccessHandler(year => {
+          this.selectedYear = year;
+        })
+        .getCurrentAcademicYear();
+    },
+    
+    changeYear() {
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$emit('year-changed', this.selectedYear);
+          this.$root.showSuccess(`Switched to ${this.selectedYear}-${parseInt(this.selectedYear) + 1} academic year`);
+          // Reload all data
+          this.$root.init();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to change year: ' + error.message);
+        })
+        .setCurrentAcademicYear(this.selectedYear);
+    },
+    
+    showNewYearModal() {
+      this.newYear = this.currentYear;
+      const modal = new bootstrap.Modal(this.$refs.newYearModal);
+      modal.show();
+    },
+    
+    createNewYear() {
+      const year = this.newYear.toString();
+      
+      if (this.availableYears.includes(year)) {
+        this.$root.showError('This academic year already exists');
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          bootstrap.Modal.getInstance(this.$refs.newYearModal).hide();
+          this.availableYears.push(year);
+          this.availableYears.sort((a, b) => b - a);
+          this.selectedYear = year;
+          this.changeYear();
+          this.$root.showSuccess(`Created new academic year ${year}-${parseInt(year) + 1}`);
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to create year: ' + error.message);
+        })
+        .setCurrentAcademicYear(year);
+    },
+    
+    showCopyModal() {
+      this.copyFromYear = this.selectedYear;
+      this.copyToYear = this.currentYear + 1;
+      const modal = new bootstrap.Modal(this.$refs.copyModal);
+      modal.show();
+    },
+    
+    copyYear() {
+      this.copying = true;
+      
+      const copyTasks = [];
+      
+      if (this.copyOptions.students) {
+        copyTasks.push(
+          new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(count => {
+                this.$root.showInfo(`Copied ${count} students`);
+                resolve();
+              })
+              .withFailureHandler(reject)
+              .copyStudentsToYear(this.copyFromYear, this.copyToYear.toString());
+          })
+        );
+      }
+      
+      if (this.copyOptions.schedule) {
+        copyTasks.push(
+          new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(count => {
+                this.$root.showInfo(`Copied ${count} schedule entries`);
+                resolve();
+              })
+              .withFailureHandler(reject)
+              .copyScheduleToYear(this.copyFromYear, this.copyToYear.toString());
+          })
+        );
+      }
+      
+      Promise.all(copyTasks)
+        .then(() => {
+          this.copying = false;
+          bootstrap.Modal.getInstance(this.$refs.copyModal).hide();
+          this.$root.showSuccess('Data copied successfully');
+          this.$root.celebrate();
+          this.loadYears();
+        })
+        .catch(error => {
+          this.copying = false;
+          this.$root.showError('Copy failed: ' + error.message);
+        });
+    },
+    
+    showArchiveModal() {
+      this.confirmArchive = false;
+      this.archiveYear = '';
+      const modal = new bootstrap.Modal(this.$refs.archiveModal);
+      modal.show();
+    },
+    
+    archiveYearData() {
+      this.archiving = true;
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.archiving = false;
+          bootstrap.Modal.getInstance(this.$refs.archiveModal).hide();
+          this.$root.showSuccess(`Archived ${this.archiveYear}-${parseInt(this.archiveYear) + 1} data`);
+          this.loadYears();
+        })
+        .withFailureHandler(error => {
+          this.archiving = false;
+          this.$root.showError('Archive failed: ' + error.message);
+        })
+        .archiveYear(this.archiveYear);
+    }
+  }
+});
+</script>
+
+<style>
+.year-selector-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.year-selector-container .form-select {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.year-selector-container .btn-outline-primary,
+.year-selector-container .btn-outline-success,
+.year-selector-container .btn-outline-info {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.year-selector-container .btn-outline-primary:hover,
+.year-selector-container .btn-outline-success:hover,
+.year-selector-container .btn-outline-info:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: white;
+}
+</style>

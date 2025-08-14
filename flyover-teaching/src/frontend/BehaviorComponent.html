@@ -1,0 +1,544 @@
+<script>
+// Behavior Tracking Component
+app.component('behavior-view', {
+  props: ['students'],
+  template: `
+    <div>
+      <h5 class="mb-3">Behavior Tracking</h5>
+      
+      <!-- Student Selector -->
+      <div class="mb-3">
+        <label class="form-label">Select Student: <i class="fas fa-info-circle text-muted" 
+               data-bs-toggle="tooltip" 
+               title="Only students with behavior tracking enabled are shown here"></i></label>
+        <select class="form-select" v-model="selectedStudentId" @change="loadBehaviorData"
+                data-bs-toggle="tooltip" data-bs-placement="right"
+                title="Choose a student to track or view behavior data">
+          <option value="">Choose a student...</option>
+          <option v-for="student in studentsWithBehaviorTracking" :key="student.id" :value="student.id">
+            {{ student.firstName }} {{ student.lastName }} (Grade {{ student.grade }})
+          </option>
+        </select>
+      </div>
+      
+      <div v-if="selectedStudentId">
+        <!-- Data Entry Accordion -->
+        <div class="accordion mb-3" id="behaviorAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                      data-bs-target="#dataEntry" aria-expanded="true">
+                <i class="fas fa-edit me-2"></i> Data Entry Grid
+              </button>
+            </h2>
+            <div id="dataEntry" class="accordion-collapse collapse show" 
+                 data-bs-parent="#behaviorAccordion">
+              <div class="accordion-body">
+                <!-- Quick Entry Form -->
+                <div class="row mb-3">
+                  <div class="col-md-3">
+                    <input type="date" class="form-control" v-model="newEntry.date"
+                           data-bs-toggle="tooltip" title="Select the date for this behavior observation">
+                  </div>
+                  <div class="col-md-2">
+                    <select class="form-select" v-model="newEntry.score"
+                            data-bs-toggle="tooltip" 
+                            title="3=Met expectations, 2=Minor issues, 1=Significant challenges">
+                      <option value="">Score...</option>
+                      <option value="3">3 - Excellent</option>
+                      <option value="2">2 - Good</option>
+                      <option value="1">1 - Needs Improvement</option>
+                    </select>
+                  </div>
+                  <div class="col-md-5">
+                    <input type="text" class="form-control" v-model="newEntry.notes" 
+                           placeholder="Notes (optional)"
+                           data-bs-toggle="tooltip" 
+                           title="Add specific observations or context for this score">
+                  </div>
+                  <div class="col-md-2">
+                    <button class="btn btn-primary w-100" @click="addBehaviorEntry"
+                            data-bs-toggle="tooltip" title="Save this behavior entry">
+                      <i class="fas fa-plus"></i> Add
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Recent Entries Grid -->
+                <div class="table-responsive">
+                  <table class="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Score</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="entry in recentEntries" :key="entry.id" 
+                          :class="getRowClass(entry.score)">
+                        <td>{{ formatDate(entry.date) }}</td>
+                        <td class="text-center">
+                          <span class="badge" :class="getBadgeClass(entry.score)">
+                            {{ entry.score }}
+                          </span>
+                        </td>
+                        <td>{{ entry.notes || '-' }}</td>
+                        <td>
+                          <button class="btn btn-sm btn-outline-danger" 
+                                  @click="deleteEntry(entry.id)">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </td>
+                      </tr>
+                      <tr v-if="recentEntries.length === 0">
+                        <td colspan="4" class="text-center text-muted">No behavior data yet</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <!-- Weekly Grid View -->
+                <h6 class="mt-4 mb-2">Weekly Overview</h6>
+                <div class="weekly-grid">
+                  <div class="row">
+                    <div class="col" v-for="day in weekDays" :key="day">
+                      <div class="text-center fw-bold">{{ day }}</div>
+                      <div class="score-cell" 
+                           :class="getScoreClass(getScoreForDay(day))"
+                           @click="quickAddScore(day)">
+                        {{ getScoreForDay(day) || '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Charts Accordion -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                      data-bs-target="#charts" aria-expanded="false">
+                <i class="fas fa-chart-line me-2"></i> Progress Charts
+              </button>
+            </h2>
+            <div id="charts" class="accordion-collapse collapse" 
+                 data-bs-parent="#behaviorAccordion">
+              <div class="accordion-body">
+                <!-- Chart Type Selector -->
+                <div class="btn-group mb-3" role="group">
+                  <button type="button" class="btn btn-outline-primary" 
+                          :class="{ active: chartType === 'line' }"
+                          @click="changeChartType('line')">
+                    <i class="fas fa-chart-line"></i> Line
+                  </button>
+                  <button type="button" class="btn btn-outline-primary" 
+                          :class="{ active: chartType === 'bar' }"
+                          @click="changeChartType('bar')">
+                    <i class="fas fa-chart-bar"></i> Bar
+                  </button>
+                  <button type="button" class="btn btn-outline-primary" 
+                          :class="{ active: chartType === 'radar' }"
+                          @click="changeChartType('radar')">
+                    <i class="fas fa-chart-area"></i> Radar
+                  </button>
+                  <button type="button" class="btn btn-outline-primary" 
+                          :class="{ active: chartType === 'scatter' }"
+                          @click="changeChartType('scatter')">
+                    <i class="fas fa-braille"></i> Scatter
+                  </button>
+                </div>
+                
+                <!-- Chart Container -->
+                <div class="chart-container">
+                  <canvas ref="behaviorChart"></canvas>
+                </div>
+                
+                <!-- Statistics Cards -->
+                <div class="row mt-4">
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h5 class="card-title">{{ stats.average || '0' }}</h5>
+                        <p class="card-text text-muted">Average Score</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h5 class="card-title">
+                          <i :class="getTrendIcon(stats.trend)"></i>
+                        </h5>
+                        <p class="card-text text-muted">{{ stats.trend || 'No trend' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h5 class="card-title">{{ stats.totalEntries || 0 }}</h5>
+                        <p class="card-text text-muted">Total Entries</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h5 class="card-title">{{ currentStreak }}</h5>
+                        <p class="card-text text-muted">Day Streak (3s)</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Generate Report Button -->
+        <div class="text-end">
+          <button class="btn btn-outline-secondary" @click="generateReport">
+            <i class="fas fa-file-alt"></i> Generate Report
+          </button>
+        </div>
+      </div>
+    </div>
+  `,
+  data() {
+    return {
+      selectedStudentId: '',
+      behaviorData: [],
+      recentEntries: [],
+      stats: {},
+      chartType: 'line',
+      chart: null,
+      newEntry: {
+        date: new Date().toISOString().split('T')[0],
+        score: '',
+        notes: ''
+      },
+      weekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+    };
+  },
+  computed: {
+    studentsWithBehaviorTracking() {
+      return this.students.filter(s => s.trackBehavior === 'true' || s.trackBehavior === true);
+    },
+    selectedStudent() {
+      return this.students.find(s => s.id === this.selectedStudentId);
+    },
+    currentStreak() {
+      let streak = 0;
+      for (let i = this.recentEntries.length - 1; i >= 0; i--) {
+        if (this.recentEntries[i].score === '3') {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+  },
+  methods: {
+    loadBehaviorData() {
+      if (!this.selectedStudentId) return;
+      
+      google.script.run
+        .withSuccessHandler(data => {
+          this.behaviorData = data || [];
+          this.recentEntries = data.slice(-10).reverse();
+          this.loadStats();
+          this.renderChart();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to load behavior data');
+        })
+        .getBehaviorByStudent(this.selectedStudentId);
+    },
+    
+    loadStats() {
+      google.script.run
+        .withSuccessHandler(stats => {
+          this.stats = stats;
+        })
+        .getBehaviorStats(this.selectedStudentId);
+    },
+    
+    addBehaviorEntry() {
+      if (!this.newEntry.date || !this.newEntry.score) {
+        this.$root.showError('Please select date and score');
+        return;
+      }
+      
+      const entry = {
+        studentId: this.selectedStudentId,
+        studentName: `${this.selectedStudent.firstName} ${this.selectedStudent.lastName}`,
+        ...this.newEntry
+      };
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.loadBehaviorData();
+          this.newEntry.score = '';
+          this.newEntry.notes = '';
+          this.$root.showSuccess('Behavior entry added');
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to add entry');
+        })
+        .addBehaviorScore(entry);
+    },
+    
+    deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.loadBehaviorData();
+          this.$root.showSuccess('Entry deleted');
+        })
+        .deleteBehaviorEntry(id);
+    },
+    
+    getRowClass(score) {
+      if (score === '3') return 'table-success';
+      if (score === '2') return 'table-warning';
+      if (score === '1') return 'table-danger';
+      return '';
+    },
+    
+    getBadgeClass(score) {
+      if (score === '3') return 'bg-success';
+      if (score === '2') return 'bg-warning';
+      if (score === '1') return 'bg-danger';
+      return 'bg-secondary';
+    },
+    
+    getScoreClass(score) {
+      if (score === 3) return 'score-excellent';
+      if (score === 2) return 'score-good';
+      if (score === 1) return 'score-needs-improvement';
+      return 'score-empty';
+    },
+    
+    getScoreForDay(day) {
+      // Get score for current week day
+      const today = new Date();
+      const currentDay = today.getDay();
+      const dayIndex = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
+      
+      // Find entry for this day
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() - (currentDay - 1) + dayIndex);
+      const dateStr = targetDate.toISOString().split('T')[0];
+      
+      const entry = this.behaviorData.find(e => e.date === dateStr);
+      return entry ? entry.score : null;
+    },
+    
+    quickAddScore(day) {
+      // Quick add score for a day
+      const score = prompt(`Enter score for ${day} (1-3):`);
+      if (score && ['1', '2', '3'].includes(score)) {
+        // Calculate date for the day
+        const today = new Date();
+        const currentDay = today.getDay();
+        const dayIndex = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(day);
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() - (currentDay - 1) + dayIndex);
+        
+        this.newEntry.date = targetDate.toISOString().split('T')[0];
+        this.newEntry.score = score;
+        this.addBehaviorEntry();
+      }
+    },
+    
+    formatDate(date) {
+      return new Date(date).toLocaleDateString();
+    },
+    
+    getTrendIcon(trend) {
+      if (trend === 'improving') return 'fas fa-arrow-up text-success';
+      if (trend === 'declining') return 'fas fa-arrow-down text-danger';
+      return 'fas fa-minus text-warning';
+    },
+    
+    changeChartType(type) {
+      this.chartType = type;
+      this.renderChart();
+    },
+    
+    renderChart() {
+      if (!this.behaviorData.length) return;
+      
+      if (this.chart) {
+        this.chart.destroy();
+      }
+      
+      const labels = this.behaviorData.map(e => this.formatDate(e.date));
+      const scores = this.behaviorData.map(e => parseInt(e.score));
+      
+      const chartConfig = {
+        type: this.chartType,
+        data: {
+          labels,
+          datasets: [{
+            label: 'Behavior Score',
+            data: scores,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: this.chartType === 'line' ? 'rgba(75, 192, 192, 0.2)' : 
+              scores.map(score => {
+                if (score === 3) return 'rgba(76, 175, 80, 0.7)';
+                if (score === 2) return 'rgba(255, 193, 7, 0.7)';
+                return 'rgba(244, 67, 54, 0.7)';
+              }),
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 3,
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  const labels = { 1: 'Needs Improvement', 2: 'Good', 3: 'Excellent' };
+                  return labels[value] || value;
+                }
+              }
+            }
+          }
+        }
+      };
+      
+      // Adjust for radar chart
+      if (this.chartType === 'radar') {
+        chartConfig.options.scales = {
+          r: {
+            beginAtZero: true,
+            max: 3,
+            ticks: { stepSize: 1 }
+          }
+        };
+      }
+      
+      // Adjust for scatter chart
+      if (this.chartType === 'scatter') {
+        chartConfig.data.datasets[0].data = scores.map((score, index) => ({
+          x: index,
+          y: score
+        }));
+      }
+      
+      this.$nextTick(() => {
+        const ctx = this.$refs.behaviorChart?.getContext('2d');
+        if (ctx) {
+          this.chart = new Chart(ctx, chartConfig);
+        }
+      });
+    },
+    
+    generateReport() {
+      google.script.run
+        .withSuccessHandler(report => {
+          // Display report in modal or download
+          const reportText = `
+Behavior Report for ${report.student}
+Grade: ${report.grade}
+Date: ${report.reportDate}
+
+Average Score: ${report.stats.average}
+Trend: ${report.stats.trend}
+Total Entries: ${report.stats.totalEntries}
+
+Recommendations:
+${report.recommendations.map(r => '• ' + r).join('\\n')}
+          `;
+          
+          alert(reportText);
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to generate report');
+        })
+        .generateBehaviorReport(this.selectedStudentId);
+    }
+  },
+  watch: {
+    selectedStudentId() {
+      if (this.selectedStudentId) {
+        this.loadBehaviorData();
+      }
+    }
+  }
+});
+</script>
+
+<style>
+.weekly-grid .score-cell {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #dee2e6;
+  border-radius: 0.25rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.weekly-grid .score-cell:hover {
+  transform: scale(1.05);
+}
+
+.score-excellent {
+  background-color: #4caf50;
+  color: white;
+  border-color: #45a049;
+}
+
+.score-good {
+  background-color: #ffc107;
+  color: #333;
+  border-color: #ffb300;
+}
+
+.score-needs-improvement {
+  background-color: #f44336;
+  color: white;
+  border-color: #da190b;
+}
+
+.score-empty {
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin-bottom: 1rem;
+}
+
+.accordion-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.accordion-button:not(.collapsed) {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  color: white;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+}
+</style>

@@ -1,0 +1,227 @@
+<script>
+const { createApp } = Vue;
+
+const app = createApp({
+  data() {
+    return {
+      loading: true,
+      activeTab: 'schedule',
+      config: {
+        title: 'FlyOver Teaching Dashboard',
+        subtitle: 'Class Schedule & Student Management'
+      },
+      schedule: [],
+      students: [],
+      grades: [],
+      assignments: [],
+      showQuickActions: false,
+      currentYear: new Date().getFullYear().toString()
+    };
+  },
+  
+  mounted() {
+    this.init();
+    this.initTooltips();
+  },
+  
+  updated() {
+    this.initTooltips();
+  },
+  
+  methods: {
+    async init() {
+      this.loading = true;
+      try {
+        await Promise.all([
+          this.loadSchedule(),
+          this.loadStudents()
+        ]);
+      } catch (error) {
+        this.showError('Failed to load data: ' + error.message);
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    loadSchedule() {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(data => {
+            this.schedule = data || [];
+            resolve();
+          })
+          .withFailureHandler(error => {
+            reject(error);
+          })
+          .getTableData('Schedule');
+      });
+    },
+    
+    loadStudents() {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(data => {
+            this.students = data || [];
+            resolve();
+          })
+          .withFailureHandler(error => {
+            reject(error);
+          })
+          .getTableData('Students');
+      });
+    },
+    
+    showSuccess(message) {
+      this.$refs.toast?.show(message, 'success');
+    },
+    
+    showError(message) {
+      this.$refs.toast?.show(message, 'danger');
+    },
+    
+    showInfo(message) {
+      this.$refs.toast?.show(message, 'info');
+    },
+    
+    initTooltips() {
+      // Initialize Bootstrap tooltips for all elements with data-bs-toggle="tooltip"
+      this.$nextTick(() => {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipTriggerList.forEach(tooltipTriggerEl => {
+          // Check if tooltip already initialized
+          if (!bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+          }
+        });
+      });
+    },
+    
+    toggleQuickActions() {
+      this.showQuickActions = !this.showQuickActions;
+    },
+    
+    quickAddStudent() {
+      this.showQuickActions = false;
+      this.activeTab = 'students';
+      this.$nextTick(() => {
+        // Trigger add student modal
+        const event = new CustomEvent('quick-add-student');
+        document.dispatchEvent(event);
+      });
+    },
+    
+    quickAddSchedule() {
+      this.showQuickActions = false;
+      this.activeTab = 'schedule';
+      this.$nextTick(() => {
+        // Trigger add schedule modal
+        const event = new CustomEvent('quick-add-schedule');
+        document.dispatchEvent(event);
+      });
+    },
+    
+    quickExportPDF() {
+      this.showQuickActions = false;
+      this.activeTab = 'export';
+      this.$nextTick(() => {
+        // Trigger PDF export
+        const event = new CustomEvent('quick-export-pdf');
+        document.dispatchEvent(event);
+      });
+    },
+    
+    showHelp() {
+      this.showQuickActions = false;
+      google.script.run.showHelp();
+    },
+    
+    celebrate() {
+      // Create confetti effect
+      for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = Math.random() * 100 + '%';
+          confetti.style.backgroundColor = ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444'][Math.floor(Math.random() * 5)];
+          confetti.style.animationDelay = Math.random() * 0.5 + 's';
+          document.body.appendChild(confetti);
+          setTimeout(() => confetti.remove(), 3000);
+        }, i * 50);
+      }
+    },
+    
+    onYearChanged(year) {
+      this.currentYear = year;
+      // Reload all data for the new year
+      this.init();
+      this.showInfo(`Switched to ${year}-${parseInt(year) + 1} academic year`);
+    }
+  }
+});
+
+// Register global components
+app.component('loading-spinner', {
+  template: `
+    <div class="d-flex justify-content-center align-items-center loading-pulse" style="min-height: 300px;">
+      <div class="text-center fade-in-up">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted">
+          <i class="fas fa-magic me-2"></i>
+          Loading your teaching dashboard...
+        </p>
+        <div class="progress mt-3" style="width: 200px; margin: 0 auto;">
+          <div class="progress-bar" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  `
+});
+
+app.component('toast-notification', {
+  template: `
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+      <div ref="toastEl" class="toast" role="alert">
+        <div class="toast-header">
+          <i :class="iconClass" class="me-2"></i>
+          <strong class="me-auto">{{ title }}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">{{ message }}</div>
+      </div>
+    </div>
+  `,
+  data() {
+    return {
+      message: '',
+      title: 'Notification',
+      type: 'info'
+    };
+  },
+  computed: {
+    iconClass() {
+      const icons = {
+        success: 'fas fa-check-circle text-success',
+        danger: 'fas fa-exclamation-circle text-danger',
+        warning: 'fas fa-exclamation-triangle text-warning',
+        info: 'fas fa-info-circle text-info'
+      };
+      return icons[this.type] || icons.info;
+    }
+  },
+  methods: {
+    show(message, type = 'info') {
+      this.message = message;
+      this.type = type;
+      this.title = type.charAt(0).toUpperCase() + type.slice(1);
+      
+      const toast = new bootstrap.Toast(this.$refs.toastEl);
+      toast.show();
+    }
+  }
+});
+
+// Mount the app after components are defined
+app.mount('#app');
+</script>

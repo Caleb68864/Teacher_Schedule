@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <?!= include('frontend/Style.css') ?>
+  </head>
+  <body>
+    <div class="settings-sidebar p-3">
+      <div class="settings-header">
+        <button class="close-sidebar" onclick="google.script.host.close()">
+          <i class="fas fa-times"></i>
+        </button>
+        <h5 class="mb-0">
+          <i class="fas fa-cog me-2"></i>Settings
+        </h5>
+      </div>
+      
+      <div class="mb-4">
+        <h6 class="text-muted mb-3">Data Management</h6>
+        
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-title">
+              <i class="fas fa-database text-primary"></i> Google Sheet Data
+            </h6>
+            <p class="card-text small text-muted">
+              Your data is stored in the Google Sheet. Click below to view or edit directly.
+            </p>
+            <a href="#" onclick="openSpreadsheet()" class="google-sheet-link">
+              <i class="fas fa-external-link-alt me-2"></i>
+              Open Google Sheet
+            </a>
+          </div>
+        </div>
+        
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-title">
+              <i class="fas fa-window-close text-danger"></i> Close Sidebar
+            </h6>
+            <p class="card-text small text-muted">
+              Close this sidebar to view the spreadsheet data directly.
+            </p>
+            <button class="btn btn-outline-danger btn-sm" onclick="google.script.host.close()">
+              <i class="fas fa-times"></i> Close Sidebar
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <h6 class="text-muted mb-3">Sheet Management</h6>
+        
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title">
+              <i class="fas fa-plus-circle text-success"></i> Initialize Sheets
+            </h6>
+            <p class="card-text small text-muted">
+              Create missing data sheets if they don't exist.
+            </p>
+            <button class="btn btn-success btn-sm" onclick="initializeSheets()">
+              <i class="fas fa-sync"></i> Initialize All Sheets
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <h6 class="text-muted mb-3">Help & Documentation</h6>
+        
+        <div class="list-group">
+          <a href="#" onclick="showHelp('getting-started')" class="list-group-item list-group-item-action">
+            <i class="fas fa-rocket text-primary"></i> Getting Started
+          </a>
+          <a href="#" onclick="showHelp('data-structure')" class="list-group-item list-group-item-action">
+            <i class="fas fa-table text-info"></i> Data Structure
+          </a>
+          <a href="#" onclick="showHelp('deployment')" class="list-group-item list-group-item-action">
+            <i class="fas fa-cloud-upload-alt text-success"></i> Deployment Guide
+          </a>
+        </div>
+      </div>
+      
+      <div class="text-center text-muted small mt-4">
+        <p>FlyOver Teaching v1.0</p>
+        <p>Built with Google Apps Script</p>
+      </div>
+    </div>
+    
+    <script>
+      function openSpreadsheet() {
+        google.script.run
+          .withSuccessHandler(url => {
+            window.open(url, '_blank');
+          })
+          .getSpreadsheetUrl();
+      }
+      
+      function initializeSheets() {
+        google.script.run
+          .withSuccessHandler(() => {
+            alert('All sheets have been initialized successfully!');
+          })
+          .withFailureHandler(error => {
+            alert('Error: ' + error.message);
+          })
+          .initializeAllSheets();
+      }
+      
+      function showHelp(topic) {
+        const helpContent = {
+          'getting-started': `
+            <h5>Getting Started</h5>
+            <p>1. Click "Launch Dashboard" from the FlyOver Teaching menu</p>
+            <p>2. Add your students in the Students tab</p>
+            <p>3. Create your schedule entries in the Schedule tab</p>
+            <p>4. View analytics and export options in their respective tabs</p>
+          `,
+          'data-structure': `
+            <h5>Data Structure</h5>
+            <p><strong>Schedule Sheet:</strong> Contains class times, subjects, and assignments</p>
+            <p><strong>Students Sheet:</strong> Student information and grades</p>
+            <p><strong>Grades Sheet:</strong> Individual assignment scores</p>
+            <p><strong>Settings Sheet:</strong> Application configuration</p>
+          `,
+          'deployment': `
+            <h5>Deployment Guide</h5>
+            <p>1. Install CLASP: npm install -g @google/clasp</p>
+            <p>2. Login: clasp login</p>
+            <p>3. Push code: clasp push</p>
+            <p>4. Share the spreadsheet with other users</p>
+          `
+        };
+        
+        const content = helpContent[topic] || '<p>Help topic not found</p>';
+        const modal = `
+          <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                </div>
+                <div class="modal-body">
+                  ${content}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modal);
+      }
+    </script>
+  </body>
+</html>

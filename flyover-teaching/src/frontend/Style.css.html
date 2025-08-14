@@ -1,0 +1,147 @@
+<style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  background: white;
+  min-height: 100vh;
+}
+
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.nav-tabs .nav-link {
+  color: #666;
+  border: none;
+  padding: 0.75rem 1.25rem;
+}
+
+.nav-tabs .nav-link.active {
+  color: #667eea;
+  background: transparent;
+  border-bottom: 3px solid #667eea;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #764ba2;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.table {
+  font-size: 0.9rem;
+}
+
+.badge {
+  padding: 0.35rem 0.65rem;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.modal-header .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.toast {
+  min-width: 300px;
+}
+
+/* Settings sidebar specific */
+.settings-sidebar {
+  background: #f8f9fa;
+  border-left: 1px solid #dee2e6;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.settings-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem;
+  margin: -0.75rem -0.75rem 1rem -0.75rem;
+}
+
+.close-sidebar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.close-sidebar:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.google-sheet-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #4285f4;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.25rem;
+  transition: background 0.2s;
+}
+
+.google-sheet-link:hover {
+  background: #357ae8;
+  color: white;
+}
+
+/* Chart container */
+canvas {
+  max-height: 300px;
+}
+</style>

@@ -1,0 +1,1022 @@
+<script>
+// Data Collection Component for SPED/IEP
+app.component('data-collection-view', {
+  props: ['students'],
+  template: `
+    <div>
+      <h5 class="mb-3">
+        <i class="fas fa-clipboard-check"></i> Data Collection Tools
+      </h5>
+      
+      <!-- Student Selector -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Select Student: <i class="fas fa-info-circle text-muted" 
+                 data-bs-toggle="tooltip" 
+                 title="Choose which student's data you want to collect or view"></i></label>
+          <select class="form-select" v-model="selectedStudentId"
+                  data-bs-toggle="tooltip" data-bs-placement="bottom"
+                  title="All students in your roster are available for data collection">
+            <option value="">Choose a student...</option>
+            <option v-for="student in students" :key="student.id" :value="student.id">
+              {{ student.firstName }} {{ student.lastName }} (Grade {{ student.grade }})
+            </option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Collection Type: <i class="fas fa-info-circle text-muted" 
+                 data-bs-toggle="tooltip" 
+                 title="Select the type of data you want to collect for IEP documentation"></i></label>
+          <select class="form-select" v-model="collectionType"
+                  data-bs-toggle="tooltip" data-bs-placement="bottom"
+                  title="Each type serves different IEP data collection needs">
+            <option value="frequency">Frequency/Duration/Latency</option>
+            <option value="abc">ABC Tracking</option>
+            <option value="task">Task Analysis</option>
+            <option value="work">Work Samples</option>
+            <option value="prompt">Prompt Level Tracking</option>
+          </select>
+        </div>
+      </div>
+      
+      <div v-if="selectedStudentId">
+        <!-- Frequency/Duration/Latency Recording -->
+        <div v-if="collectionType === 'frequency'" class="card">
+          <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-stopwatch"></i> Frequency/Duration/Latency Recording
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Date:</label>
+                <input type="date" class="form-control" v-model="frequencyForm.date">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Behavior:</label>
+                <input type="text" class="form-control" v-model="frequencyForm.behavior" 
+                       placeholder="e.g., Hand raising, Out of seat">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Observation Period:</label>
+                <div class="input-group">
+                  <input type="time" class="form-control" v-model="frequencyForm.startTime">
+                  <span class="input-group-text">to</span>
+                  <input type="time" class="form-control" v-model="frequencyForm.endTime">
+                </div>
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Frequency (count): <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" 
+                       title="How many times did the behavior occur during observation?"></i></label>
+                <input type="number" class="form-control" v-model="frequencyForm.frequency" min="0"
+                       data-bs-toggle="tooltip" title="Enter the total number of occurrences">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Total Duration (minutes): <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" 
+                       title="How long did the behavior last in total?"></i></label>
+                <input type="number" class="form-control" v-model="frequencyForm.duration" min="0"
+                       data-bs-toggle="tooltip" title="Combined duration of all occurrences">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Latency (seconds): <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" 
+                       title="Time between prompt/cue and student response"></i></label>
+                <input type="number" class="form-control" v-model="frequencyForm.latency" min="0"
+                       data-bs-toggle="tooltip" title="Useful for measuring response time">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Notes:</label>
+              <textarea class="form-control" v-model="frequencyForm.notes" rows="2"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" @click="saveFrequencyData">
+              <i class="fas fa-save"></i> Save Data
+            </button>
+            
+            <!-- Recent Data -->
+            <div class="mt-4">
+              <h6>Recent Frequency Data</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Behavior</th>
+                      <th>Frequency</th>
+                      <th>Duration</th>
+                      <th>Latency</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="entry in recentFrequencyData" :key="entry.id">
+                      <td>{{ formatDate(entry.date) }}</td>
+                      <td>{{ entry.behavior }}</td>
+                      <td>{{ entry.frequency }}</td>
+                      <td>{{ entry.duration }} min</td>
+                      <td>{{ entry.latency }} sec</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ABC Tracking -->
+        <div v-if="collectionType === 'abc'" class="card">
+          <div class="card-header bg-warning text-dark">
+            <h6 class="mb-0">
+              <i class="fas fa-exchange-alt"></i> ABC (Antecedent-Behavior-Consequence) Tracking
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Date:</label>
+                <input type="date" class="form-control" v-model="abcForm.date">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Time:</label>
+                <input type="time" class="form-control" v-model="abcForm.time">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">
+                <span class="badge bg-info">A</span> Antecedent (What happened before?):
+              </label>
+              <textarea class="form-control" v-model="abcForm.antecedent" rows="2"
+                       placeholder="Describe what happened immediately before the behavior"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">
+                <span class="badge bg-danger">B</span> Behavior (What did the student do?):
+              </label>
+              <textarea class="form-control" v-model="abcForm.behavior" rows="2"
+                       placeholder="Describe the specific, observable behavior"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">
+                <span class="badge bg-success">C</span> Consequence (What happened after?):
+              </label>
+              <textarea class="form-control" v-model="abcForm.consequence" rows="2"
+                       placeholder="Describe what happened immediately after the behavior"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Function Hypothesis: <i class="fas fa-info-circle text-muted" 
+                     data-bs-toggle="tooltip" 
+                     title="What purpose does this behavior serve for the student?"></i></label>
+              <select class="form-select" v-model="abcForm.functionHypothesis"
+                      data-bs-toggle="tooltip" data-bs-placement="left"
+                      title="System will auto-suggest based on your ABC entries">
+                <option value="">Select or auto-suggest...</option>
+                <option value="Escape/Avoidance">Escape/Avoidance</option>
+                <option value="Attention-seeking">Attention-seeking</option>
+                <option value="Tangible/Access">Tangible/Access to items</option>
+                <option value="Sensory/Automatic">Sensory/Automatic</option>
+                <option value="Undetermined">Undetermined</option>
+              </select>
+            </div>
+            
+            <button class="btn btn-warning" @click="saveABCData">
+              <i class="fas fa-save"></i> Save ABC Data
+            </button>
+            
+            <!-- ABC Pattern Analysis -->
+            <div class="mt-4" v-if="abcAnalysis">
+              <h6>ABC Pattern Analysis</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <canvas ref="abcChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                  <h6>Recommendations:</h6>
+                  <ul>
+                    <li v-for="rec in abcAnalysis.recommendations" :key="rec">{{ rec }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Task Analysis -->
+        <div v-if="collectionType === 'task'" class="card">
+          <div class="card-header bg-success text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-tasks"></i> Task Analysis
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Task Name:</label>
+                <input type="text" class="form-control" v-model="taskForm.taskName"
+                       placeholder="e.g., Hand washing, Tying shoes">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Date:</label>
+                <input type="date" class="form-control" v-model="taskForm.date">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Load Template: <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" 
+                       title="Use pre-built task breakdowns for common activities"></i></label>
+                <select class="form-select" @change="loadTaskTemplate($event)"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom"
+                        title="Templates provide research-based task steps">
+                  <option value="">Custom task...</option>
+                  <option value="handwashing">Hand Washing</option>
+                  <option value="tying-shoes">Tying Shoes</option>
+                  <option value="brushing-teeth">Brushing Teeth</option>
+                  <option value="putting-on-coat">Putting on Coat</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Task Steps:</label>
+              <div v-for="(step, index) in taskSteps" :key="index" class="input-group mb-2">
+                <span class="input-group-text">{{ index + 1 }}</span>
+                <input type="text" class="form-control" v-model="taskSteps[index]" 
+                       placeholder="Step description">
+                <select class="form-select" v-model="taskPromptLevels[index]" style="max-width: 150px;">
+                  <option value="FP">FP - Full Physical</option>
+                  <option value="PP">PP - Partial Physical</option>
+                  <option value="M">M - Model</option>
+                  <option value="V">V - Verbal</option>
+                  <option value="G">G - Gestural</option>
+                  <option value="I">I - Independent</option>
+                </select>
+                <button class="btn btn-outline-danger" @click="removeTaskStep(index)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" @click="addTaskStep">
+                <i class="fas fa-plus"></i> Add Step
+              </button>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Notes:</label>
+              <textarea class="form-control" v-model="taskForm.notes" rows="2"></textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center">
+              <button class="btn btn-success" @click="saveTaskAnalysis">
+                <i class="fas fa-save"></i> Save Task Analysis
+              </button>
+              <div>
+                <strong>Independence: {{ taskIndependencePercent }}%</strong>
+                <div class="progress" style="width: 200px;">
+                  <div class="progress-bar bg-success" :style="{width: taskIndependencePercent + '%'}"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Task Progress Chart -->
+            <div class="mt-4" v-if="taskProgress.length > 0">
+              <h6>Task Progress Over Time</h6>
+              <canvas ref="taskProgressChart"></canvas>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Work Samples -->
+        <div v-if="collectionType === 'work'" class="card">
+          <div class="card-header bg-info text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-file-alt"></i> Work Sample Scoring
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Date:</label>
+                <input type="date" class="form-control" v-model="workForm.date">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Subject:</label>
+                <select class="form-select" v-model="workForm.subject">
+                  <option value="">Select subject...</option>
+                  <option value="Reading">Reading</option>
+                  <option value="Math">Math</option>
+                  <option value="Writing">Writing</option>
+                  <option value="Science">Science</option>
+                  <option value="Social Studies">Social Studies</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Assignment Type:</label>
+                <input type="text" class="form-control" v-model="workForm.assignmentType"
+                       placeholder="e.g., Worksheet, Quiz, Essay">
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Score:</label>
+                <div class="input-group">
+                  <input type="number" class="form-control" v-model="workForm.scoreEarned" min="0">
+                  <span class="input-group-text">/</span>
+                  <input type="number" class="form-control" v-model="workForm.scoreTotal" min="1">
+                  <span class="input-group-text">
+                    = {{ workSamplePercent }}%
+                  </span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Rubric Criteria (optional):</label>
+                <input type="text" class="form-control" v-model="workForm.rubricCriteria"
+                       placeholder="e.g., Accuracy, Completion, Following Directions">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Notes:</label>
+              <textarea class="form-control" v-model="workForm.notes" rows="2"
+                       placeholder="Accommodations used, areas of difficulty, etc."></textarea>
+            </div>
+            
+            <button class="btn btn-info text-white" @click="saveWorkSample">
+              <i class="fas fa-save"></i> Save Work Sample
+            </button>
+            
+            <!-- Work Sample Analysis -->
+            <div class="mt-4" v-if="workAnalysis">
+              <h6>Work Sample Analysis</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <canvas ref="workChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6>Performance Summary</h6>
+                      <p><strong>Average Score:</strong> {{ workAnalysis.averageScore }}%</p>
+                      <p><strong>Trend:</strong> 
+                        <span :class="getTrendClass(workAnalysis.trend)">
+                          {{ workAnalysis.trend }}
+                        </span>
+                      </p>
+                      <p><strong>Total Samples:</strong> {{ workAnalysis.totalSamples }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Prompt Level Tracking -->
+        <div v-if="collectionType === 'prompt'" class="card">
+          <div class="card-header bg-purple text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-hand-point-up"></i> Prompt Level Tracking
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Date:</label>
+                <input type="date" class="form-control" v-model="promptForm.date">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Skill/Target:</label>
+                <input type="text" class="form-control" v-model="promptForm.skill"
+                       placeholder="e.g., Requesting help, Following directions">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Setting:</label>
+                <input type="text" class="form-control" v-model="promptForm.setting"
+                       placeholder="e.g., Classroom, Playground, Cafeteria">
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Prompt Level Used: <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" 
+                       title="FP=Full Physical, PP=Partial Physical, M=Model, V=Verbal, G=Gestural, I=Independent"></i></label>
+                <select class="form-select" v-model="promptForm.promptLevel" 
+                        :class="getPromptLevelClass(promptForm.promptLevel)"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom"
+                        title="Track the level of support needed - goal is to fade to independence">
+                  <option value="">Select prompt level...</option>
+                  <option value="FP">Full Physical (FP)</option>
+                  <option value="PP">Partial Physical (PP)</option>
+                  <option value="M">Model (M)</option>
+                  <option value="V">Verbal (V)</option>
+                  <option value="G">Gestural (G)</option>
+                  <option value="I">Independent (I)</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Response Latency: <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" 
+                       title="Time between prompt and student's response in seconds"></i></label>
+                <input type="number" class="form-control" v-model="promptForm.responseLatency" min="0"
+                       data-bs-toggle="tooltip" title="Lower latency indicates faster response">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Accuracy (%): <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" 
+                       title="How accurately did the student perform the skill?"></i></label>
+                <input type="number" class="form-control" v-model="promptForm.accuracy" min="0" max="100"
+                       data-bs-toggle="tooltip" title="100% = perfect execution">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Notes:</label>
+              <textarea class="form-control" v-model="promptForm.notes" rows="2"></textarea>
+            </div>
+            
+            <button class="btn btn-purple text-white" @click="savePromptData">
+              <i class="fas fa-save"></i> Save Prompt Data
+            </button>
+            
+            <!-- Prompt Fading Chart -->
+            <div class="mt-4" v-if="promptFadingData">
+              <h6>Prompt Fading Progress</h6>
+              <div class="row">
+                <div class="col-md-8">
+                  <canvas ref="promptChart"></canvas>
+                </div>
+                <div class="col-md-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6>Current Status</h6>
+                      <p><strong>Current Level:</strong> 
+                        <span :class="getPromptLevelClass(promptFadingData.currentLevel)">
+                          {{ promptFadingData.currentLevel }}
+                        </span>
+                      </p>
+                      <p><strong>Trend:</strong> {{ promptFadingData.trend }}</p>
+                      <p><strong>Avg Accuracy:</strong> {{ promptFadingData.averageAccuracy }}</p>
+                      <p><strong>Avg Latency:</strong> {{ promptFadingData.responseLatency }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Generate IEP Progress Report Button -->
+        <div class="mt-4 text-center">
+          <button class="btn btn-lg btn-primary" @click="generateIEPReport"
+                  data-bs-toggle="tooltip" data-bs-placement="top"
+                  title="Compile all data into a comprehensive IEP progress report for this student">
+            <i class="fas fa-file-medical"></i> Generate IEP Progress Report
+          </button>
+        </div>
+      </div>
+    </div>
+  `,
+  data() {
+    return {
+      selectedStudentId: '',
+      collectionType: 'frequency',
+      
+      // Frequency/Duration form
+      frequencyForm: {
+        date: new Date().toISOString().split('T')[0],
+        behavior: '',
+        startTime: '',
+        endTime: '',
+        frequency: 0,
+        duration: 0,
+        latency: 0,
+        notes: ''
+      },
+      recentFrequencyData: [],
+      
+      // ABC form
+      abcForm: {
+        date: new Date().toISOString().split('T')[0],
+        time: '',
+        antecedent: '',
+        behavior: '',
+        consequence: '',
+        functionHypothesis: '',
+        notes: ''
+      },
+      abcAnalysis: null,
+      
+      // Task Analysis
+      taskForm: {
+        taskName: '',
+        date: new Date().toISOString().split('T')[0],
+        notes: ''
+      },
+      taskSteps: [''],
+      taskPromptLevels: ['I'],
+      taskProgress: [],
+      
+      // Work Samples
+      workForm: {
+        date: new Date().toISOString().split('T')[0],
+        subject: '',
+        assignmentType: '',
+        scoreEarned: 0,
+        scoreTotal: 100,
+        rubricCriteria: '',
+        notes: ''
+      },
+      workAnalysis: null,
+      
+      // Prompt Tracking
+      promptForm: {
+        date: new Date().toISOString().split('T')[0],
+        skill: '',
+        setting: '',
+        promptLevel: '',
+        responseLatency: 0,
+        accuracy: 100,
+        notes: ''
+      },
+      promptFadingData: null
+    };
+  },
+  computed: {
+    selectedStudent() {
+      return this.students.find(s => s.id === this.selectedStudentId);
+    },
+    taskIndependencePercent() {
+      const independent = this.taskPromptLevels.filter(p => p === 'I').length;
+      return this.taskSteps.length > 0 ? 
+        Math.round((independent / this.taskSteps.length) * 100) : 0;
+    },
+    workSamplePercent() {
+      return this.workForm.scoreTotal > 0 ? 
+        Math.round((this.workForm.scoreEarned / this.workForm.scoreTotal) * 100) : 0;
+    }
+  },
+  watch: {
+    selectedStudentId() {
+      if (this.selectedStudentId) {
+        this.loadStudentData();
+      }
+    },
+    collectionType() {
+      if (this.selectedStudentId) {
+        this.loadStudentData();
+      }
+    }
+  },
+  methods: {
+    loadStudentData() {
+      switch (this.collectionType) {
+        case 'frequency':
+          this.loadFrequencyData();
+          break;
+        case 'abc':
+          this.loadABCData();
+          break;
+        case 'task':
+          this.loadTaskData();
+          break;
+        case 'work':
+          this.loadWorkData();
+          break;
+        case 'prompt':
+          this.loadPromptData();
+          break;
+      }
+    },
+    
+    // Frequency/Duration methods
+    loadFrequencyData() {
+      google.script.run
+        .withSuccessHandler(data => {
+          this.recentFrequencyData = data.slice(0, 5);
+        })
+        .getFrequencyDataByStudent(this.selectedStudentId);
+    },
+    
+    saveFrequencyData() {
+      const data = {
+        ...this.frequencyForm,
+        studentId: this.selectedStudentId
+      };
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$root.showSuccess('Frequency data saved');
+          this.loadFrequencyData();
+          this.resetFrequencyForm();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .addFrequencyData(data);
+    },
+    
+    resetFrequencyForm() {
+      this.frequencyForm = {
+        date: new Date().toISOString().split('T')[0],
+        behavior: '',
+        startTime: '',
+        endTime: '',
+        frequency: 0,
+        duration: 0,
+        latency: 0,
+        notes: ''
+      };
+    },
+    
+    // ABC methods
+    loadABCData() {
+      google.script.run
+        .withSuccessHandler(analysis => {
+          this.abcAnalysis = analysis;
+          this.$nextTick(() => this.renderABCChart());
+        })
+        .getABCAnalysis(this.selectedStudentId);
+    },
+    
+    saveABCData() {
+      const data = {
+        ...this.abcForm,
+        studentId: this.selectedStudentId
+      };
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$root.showSuccess('ABC data saved');
+          this.loadABCData();
+          this.resetABCForm();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .addABCData(data);
+    },
+    
+    resetABCForm() {
+      this.abcForm = {
+        date: new Date().toISOString().split('T')[0],
+        time: '',
+        antecedent: '',
+        behavior: '',
+        consequence: '',
+        functionHypothesis: '',
+        notes: ''
+      };
+    },
+    
+    renderABCChart() {
+      if (!this.abcAnalysis || !this.$refs.abcChart) return;
+      
+      new Chart(this.$refs.abcChart, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(this.abcAnalysis.functionHypotheses),
+          datasets: [{
+            data: Object.values(this.abcAnalysis.functionHypotheses),
+            backgroundColor: [
+              '#FF6384',
+              '#36A2EB',
+              '#FFCE56',
+              '#4BC0C0'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Behavior Functions'
+            }
+          }
+        }
+      });
+    },
+    
+    // Task Analysis methods
+    loadTaskData() {
+      // Load task progress if needed
+    },
+    
+    loadTaskTemplate(event) {
+      const template = event.target.value;
+      const templates = {
+        'handwashing': {
+          name: 'Hand Washing',
+          steps: [
+            'Turn on water',
+            'Wet hands',
+            'Apply soap',
+            'Rub hands together for 20 seconds',
+            'Rinse hands',
+            'Turn off water',
+            'Dry hands with towel'
+          ]
+        },
+        'tying-shoes': {
+          name: 'Tying Shoes',
+          steps: [
+            'Hold one lace in each hand',
+            'Cross the laces',
+            'Pull one lace under and through',
+            'Pull both laces tight',
+            'Make a loop with one lace',
+            'Wrap other lace around loop',
+            'Push through hole',
+            'Pull both loops tight'
+          ]
+        },
+        'brushing-teeth': {
+          name: 'Brushing Teeth',
+          steps: [
+            'Get toothbrush and toothpaste',
+            'Turn on water',
+            'Wet toothbrush',
+            'Apply toothpaste',
+            'Brush top teeth',
+            'Brush bottom teeth',
+            'Brush tongue',
+            'Spit out toothpaste',
+            'Rinse mouth',
+            'Rinse toothbrush',
+            'Put items away'
+          ]
+        },
+        'putting-on-coat': {
+          name: 'Putting on Coat',
+          steps: [
+            'Get coat',
+            'Hold coat right side up',
+            'Put one arm in sleeve',
+            'Put other arm in sleeve',
+            'Pull coat up on shoulders',
+            'Zip or button coat'
+          ]
+        }
+      };
+      
+      if (templates[template]) {
+        this.taskForm.taskName = templates[template].name;
+        this.taskSteps = [...templates[template].steps];
+        this.taskPromptLevels = new Array(this.taskSteps.length).fill('I');
+      }
+    },
+    
+    addTaskStep() {
+      this.taskSteps.push('');
+      this.taskPromptLevels.push('I');
+    },
+    
+    removeTaskStep(index) {
+      this.taskSteps.splice(index, 1);
+      this.taskPromptLevels.splice(index, 1);
+    },
+    
+    saveTaskAnalysis() {
+      const data = {
+        ...this.taskForm,
+        studentId: this.selectedStudentId,
+        steps: this.taskSteps.filter(s => s.trim() !== ''),
+        promptLevels: this.taskPromptLevels.slice(0, this.taskSteps.length)
+      };
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$root.showSuccess('Task analysis saved');
+          this.loadTaskData();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .addTaskAnalysis(data);
+    },
+    
+    // Work Sample methods
+    loadWorkData() {
+      google.script.run
+        .withSuccessHandler(analysis => {
+          this.workAnalysis = analysis;
+          this.$nextTick(() => this.renderWorkChart());
+        })
+        .getWorkSampleAnalysis(this.selectedStudentId);
+    },
+    
+    saveWorkSample() {
+      const data = {
+        ...this.workForm,
+        studentId: this.selectedStudentId
+      };
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$root.showSuccess('Work sample saved');
+          this.loadWorkData();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .addWorkSample(data);
+    },
+    
+    renderWorkChart() {
+      if (!this.workAnalysis || !this.$refs.workChart) return;
+      
+      const subjects = Object.keys(this.workAnalysis.subjectBreakdown || {});
+      const averages = subjects.map(s => parseFloat(this.workAnalysis.subjectBreakdown[s].average));
+      
+      new Chart(this.$refs.workChart, {
+        type: 'bar',
+        data: {
+          labels: subjects,
+          datasets: [{
+            label: 'Average Score (%)',
+            data: averages,
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+    },
+    
+    // Prompt Level methods
+    loadPromptData() {
+      if (!this.promptForm.skill) return;
+      
+      google.script.run
+        .withSuccessHandler(data => {
+          this.promptFadingData = data;
+          this.$nextTick(() => this.renderPromptChart());
+        })
+        .getPromptFading(this.selectedStudentId, this.promptForm.skill);
+    },
+    
+    savePromptData() {
+      const data = {
+        ...this.promptForm,
+        studentId: this.selectedStudentId
+      };
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$root.showSuccess('Prompt data saved');
+          this.loadPromptData();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .addPromptTracking(data);
+    },
+    
+    renderPromptChart() {
+      if (!this.promptFadingData || !this.$refs.promptChart) return;
+      
+      const promptValues = {
+        'FP': 5, 'PP': 4, 'M': 3, 'V': 2, 'G': 1, 'I': 0
+      };
+      
+      const labels = this.promptFadingData.history.map(h => this.formatDate(h.date));
+      const values = this.promptFadingData.history.map(h => promptValues[h.promptLevel] || 0);
+      
+      new Chart(this.$refs.promptChart, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Prompt Level',
+            data: values,
+            borderColor: 'rgb(153, 102, 255)',
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+            stepped: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              min: 0,
+              max: 5,
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  const levels = ['I', 'G', 'V', 'M', 'PP', 'FP'];
+                  return levels[value] || value;
+                }
+              }
+            }
+          }
+        }
+      });
+    },
+    
+    getPromptLevelClass(level) {
+      const classes = {
+        'I': 'text-success',
+        'G': 'text-success',
+        'V': 'text-warning',
+        'M': 'text-warning',
+        'PP': 'text-danger',
+        'FP': 'text-danger'
+      };
+      return classes[level] || '';
+    },
+    
+    getTrendClass(trend) {
+      if (trend === 'Improving' || trend === 'Fading (improving)') return 'text-success';
+      if (trend === 'Declining' || trend === 'Increasing prompts') return 'text-danger';
+      return 'text-warning';
+    },
+    
+    formatDate(date) {
+      return new Date(date).toLocaleDateString();
+    },
+    
+    generateIEPReport() {
+      google.script.run
+        .withSuccessHandler(report => {
+          // Display report in modal or download
+          const reportHtml = this.formatIEPReport(report);
+          this.showReportModal(reportHtml);
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to generate report: ' + error.message);
+        })
+        .generateIEPProgressReport(this.selectedStudentId);
+    },
+    
+    formatIEPReport(report) {
+      return `
+        <h5>IEP Progress Report</h5>
+        <p><strong>Student:</strong> ${report.student}</p>
+        <p><strong>Grade:</strong> ${report.grade}</p>
+        <p><strong>Report Date:</strong> ${report.reportDate}</p>
+        
+        <h6>Summary</h6>
+        <ul>
+          ${report.summary.map(s => `<li>${s}</li>`).join('')}
+        </ul>
+        
+        <h6>Recommendations</h6>
+        <ul>
+          ${report.recommendations.map(r => `<li>${r}</li>`).join('')}
+        </ul>
+      `;
+    },
+    
+    showReportModal(html) {
+      // You could implement a modal here or use alert for now
+      const win = window.open('', 'IEP Report', 'width=800,height=600');
+      win.document.write(`
+        <html>
+          <head>
+            <title>IEP Progress Report</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+          </head>
+          <body class="p-4">
+            ${html}
+            <button class="btn btn-primary mt-3" onclick="window.print()">Print Report</button>
+          </body>
+        </html>
+      `);
+    }
+  }
+});
+</script>
+
+<style>
+.bg-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.btn-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.btn-purple:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+</style>

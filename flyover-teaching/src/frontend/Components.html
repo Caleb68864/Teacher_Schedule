@@ -1,0 +1,823 @@
+<script>
+// Schedule View Component
+app.component('schedule-view', {
+  props: ['schedule'],
+  template: `
+    <div class="fade-in-up">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Weekly Schedule</h5>
+        <div>
+          <button class="btn btn-sm btn-primary me-2" @click="showAddModal"
+                  data-bs-toggle="tooltip" data-bs-placement="top" 
+                  title="Add a new class or activity to your schedule">
+            <i class="fas fa-plus"></i> Add Entry
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" @click="$emit('refresh')"
+                  data-bs-toggle="tooltip" data-bs-placement="top" 
+                  title="Reload schedule data from the spreadsheet">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+        </div>
+      </div>
+      
+      <!-- Filter -->
+      <div class="mb-3">
+        <select class="form-select form-select-sm" v-model="dayFilter" style="width: 200px;"
+                data-bs-toggle="tooltip" data-bs-placement="right" 
+                title="Filter schedule by specific day of the week">
+          <option value="all">All Days</option>
+          <option value="monday">Monday</option>
+          <option value="tuesday">Tuesday</option>
+          <option value="wednesday">Wednesday</option>
+          <option value="thursday">Thursday</option>
+          <option value="friday">Friday</option>
+        </select>
+      </div>
+      
+      <!-- Schedule Grid -->
+      <div class="row g-2 fade-in-up">
+        <div v-for="slot in filteredSchedule" :key="slot.id" class="col-12 col-md-6 col-lg-4 slide-in-right">
+          <div class="card h-100 card-glow" :style="cardStyle(slot)">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="card-title mb-1">
+                    <i :class="slot.icon || 'fas fa-clock'" :style="{color: slot.color}"></i>
+                    {{ slot.subject }}
+                  </h6>
+                  <p class="text-muted small mb-2">{{ slot.time }}</p>
+                </div>
+                <button class="btn btn-sm btn-outline-danger" @click="deleteEntry(slot.id)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              <div v-if="slot.students" class="mb-2">
+                <small class="text-muted">Students:</small>
+                <div class="small">{{ slot.students }}</div>
+              </div>
+              <div v-if="slot.grade" class="mb-2">
+                <span class="badge bg-secondary">Grade {{ slot.grade }}</span>
+              </div>
+              <div v-if="slot.note" class="small text-muted">
+                <i class="fas fa-sticky-note"></i> {{ slot.note }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add/Edit Modal -->
+      <div class="modal fade" ref="scheduleModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Add Schedule Entry</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Day <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Select specific days or patterns like MWF for Mon/Wed/Fri"></i></label>
+                <select class="form-select" v-model="formData.day">
+                  <option value="monday">Monday</option>
+                  <option value="tuesday">Tuesday</option>
+                  <option value="wednesday">Wednesday</option>
+                  <option value="thursday">Thursday</option>
+                  <option value="friday">Friday</option>
+                  <option value="mwf">Mon/Wed/Fri</option>
+                  <option value="tth">Tue/Thu</option>
+                  <option value="all">Every Day</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Time <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Enter the start and end time for this activity"></i></label>
+                <input type="text" class="form-control" v-model="formData.time" 
+                       placeholder="e.g., 9:00 AM - 10:00 AM">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Subject <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Name of the class, subject, or activity"></i></label>
+                <input type="text" class="form-control" v-model="formData.subject" 
+                       placeholder="e.g., Math, Science, Reading">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Students <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="List student names separated by commas"></i></label>
+                <input type="text" class="form-control" v-model="formData.students" 
+                       placeholder="e.g., John, Sarah, Mike">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Grade <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Grade level(s) for this class"></i></label>
+                <input type="text" class="form-control" v-model="formData.grade" 
+                       placeholder="e.g., 3rd, 4th-5th">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Type <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Categorize this time slot for visual organization"></i></label>
+                <select class="form-select" v-model="formData.type">
+                  <option value="normal">Normal Class</option>
+                  <option value="special">Special Activity</option>
+                  <option value="break">Break/Lunch</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Icon <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Font Awesome icon class for visual representation"></i></label>
+                <input type="text" class="form-control" v-model="formData.icon" 
+                       placeholder="e.g., fa-book, fa-flask, fa-music">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Color <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Choose a color to highlight this schedule entry"></i></label>
+                <input type="color" class="form-control form-control-color" v-model="formData.color">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Note <i class="fas fa-info-circle text-muted" 
+                       data-bs-toggle="tooltip" title="Additional information like lesson topics or reminders"></i></label>
+                <textarea class="form-control" v-model="formData.note" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" @click="saveEntry">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  data() {
+    return {
+      dayFilter: 'all',
+      formData: {
+        day: 'monday',
+        time: '',
+        subject: '',
+        students: '',
+        grade: '',
+        type: 'normal',
+        icon: 'fa-book',
+        color: '#2196F3',
+        note: ''
+      }
+    };
+  },
+  mounted() {
+    // Listen for quick action event
+    document.addEventListener('quick-add-schedule', () => {
+      this.showAddModal();
+    });
+  },
+  computed: {
+    filteredSchedule() {
+      if (this.dayFilter === 'all') return this.schedule;
+      
+      return this.schedule.filter(slot => {
+        const day = slot.day || 'all';
+        if (day === 'all') return true;
+        if (day === this.dayFilter) return true;
+        if (day === 'mwf' && ['monday', 'wednesday', 'friday'].includes(this.dayFilter)) return true;
+        if (day === 'tth' && ['tuesday', 'thursday'].includes(this.dayFilter)) return true;
+        return false;
+      });
+    }
+  },
+  methods: {
+    cardStyle(slot) {
+      return {
+        borderLeft: `4px solid ${slot.color || '#ccc'}`,
+        background: slot.color ? `linear-gradient(to right, ${slot.color}08, transparent)` : ''
+      };
+    },
+    showAddModal() {
+      this.resetForm();
+      const modal = new bootstrap.Modal(this.$refs.scheduleModal);
+      modal.show();
+    },
+    resetForm() {
+      this.formData = {
+        day: 'monday',
+        time: '',
+        subject: '',
+        students: '',
+        grade: '',
+        type: 'normal',
+        icon: 'fa-book',
+        color: '#2196F3',
+        note: ''
+      };
+    },
+    saveEntry() {
+      google.script.run
+        .withSuccessHandler(() => {
+          bootstrap.Modal.getInstance(this.$refs.scheduleModal).hide();
+          this.$emit('refresh');
+          this.$root.showSuccess('Schedule entry added successfully');
+          this.$root.celebrate();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .addScheduleEntry(this.formData);
+    },
+    deleteEntry(id) {
+      if (!confirm('Delete this schedule entry?')) return;
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$emit('refresh');
+          this.$root.showSuccess('Entry deleted');
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to delete: ' + error.message);
+        })
+        .deleteScheduleEntry(id);
+    }
+  }
+});
+
+// Students View Component
+app.component('students-view', {
+  props: ['students'],
+  template: `
+    <div class="fade-in-up">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Students</h5>
+        <div>
+          <button class="btn btn-sm btn-primary me-2" @click="showAddModal"
+                  data-bs-toggle="tooltip" data-bs-placement="top" 
+                  title="Add a new student to your class roster">
+            <i class="fas fa-plus"></i> Add Student
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" @click="$emit('refresh')"
+                  data-bs-toggle="tooltip" data-bs-placement="top" 
+                  title="Reload student data from the spreadsheet">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+        </div>
+      </div>
+      
+      <!-- Students Table -->
+      <div class="table-responsive slide-in-right">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Grade</th>
+              <th>Email</th>
+              <th>Track Behavior</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="student in students" :key="student.id">
+              <td>{{ student.firstName }}</td>
+              <td>{{ student.lastName }}</td>
+              <td>{{ student.grade }}</td>
+              <td>{{ student.email }}</td>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" 
+                         :checked="student.trackBehavior === 'true'"
+                         @change="toggleBehaviorTracking(student.id, $event)"
+                         data-bs-toggle="tooltip" data-bs-placement="left"
+                         title="Enable to track behavior and collect IEP data for this student">
+                </div>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-danger" @click="deleteStudent(student.id)"
+                        data-bs-toggle="tooltip" data-bs-placement="left"
+                        title="Remove this student from the roster">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Add Modal -->
+      <div class="modal fade" ref="studentModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Add Student</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" v-model="formData.firstName" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" v-model="formData.lastName">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Grade</label>
+                <input type="text" class="form-control" v-model="formData.grade" 
+                       placeholder="e.g., 3rd, 4th">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email (optional)</label>
+                <input type="email" class="form-control" v-model="formData.email">
+              </div>
+              <div class="mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="trackBehavior" 
+                         v-model="formData.trackBehavior">
+                  <label class="form-check-label" for="trackBehavior">
+                    Track behavior for this student
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" @click="saveStudent">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  data() {
+    return {
+      formData: {
+        firstName: '',
+        lastName: '',
+        grade: '',
+        email: '',
+        trackBehavior: false
+      }
+    };
+  },
+  mounted() {
+    // Listen for quick action event
+    document.addEventListener('quick-add-student', () => {
+      this.showAddModal();
+    });
+  },
+  methods: {
+    showAddModal() {
+      this.resetForm();
+      const modal = new bootstrap.Modal(this.$refs.studentModal);
+      modal.show();
+    },
+    resetForm() {
+      this.formData = {
+        firstName: '',
+        lastName: '',
+        grade: '',
+        email: '',
+        trackBehavior: false
+      };
+    },
+    toggleBehaviorTracking(studentId, event) {
+      const checked = event.target.checked;
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$emit('refresh');
+          this.$root.showSuccess('Behavior tracking updated');
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to update: ' + error.message);
+        })
+        .updateStudentBehaviorTracking(studentId, checked);
+    },
+    saveStudent() {
+      if (!this.formData.firstName) {
+        alert('First name is required');
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          bootstrap.Modal.getInstance(this.$refs.studentModal).hide();
+          this.$emit('refresh');
+          this.$root.showSuccess('Student added successfully');
+          this.$root.celebrate();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .addStudent(this.formData);
+    },
+    deleteStudent(id) {
+      if (!confirm('Delete this student?')) return;
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$emit('refresh');
+          this.$root.showSuccess('Student deleted');
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to delete: ' + error.message);
+        })
+        .deleteStudent(id);
+    }
+  }
+});
+
+// Analytics View Component  
+app.component('analytics-view', {
+  props: ['schedule', 'students'],
+  template: `
+    <div class="fade-in-up">
+      <h5 class="mb-3">Analytics Dashboard</h5>
+      
+      <div class="row g-3">
+        <div class="col-md-6 slide-in-right">
+          <div class="card card-glow">
+            <div class="card-body">
+              <h6 class="card-title">Classes by Type</h6>
+              <canvas ref="typeChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card card-glow">
+            <div class="card-body">
+              <h6 class="card-title">Classes by Day</h6>
+              <canvas ref="dayChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card card-glow">
+            <div class="card-body">
+              <h6 class="card-title">Students by Grade</h6>
+              <canvas ref="gradeChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card card-glow">
+            <div class="card-body">
+              <h6 class="card-title">Summary Stats</h6>
+              <ul class="list-unstyled">
+                <li><strong>Total Classes:</strong> {{ schedule.length }}</li>
+                <li><strong>Total Students:</strong> {{ students.length }}</li>
+                <li><strong>Unique Subjects:</strong> {{ uniqueSubjects }}</li>
+                <li><strong>Average Class Size:</strong> {{ avgClassSize }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  computed: {
+    uniqueSubjects() {
+      return new Set(this.schedule.map(s => s.subject)).size;
+    },
+    avgClassSize() {
+      const sizes = this.schedule
+        .filter(s => s.students)
+        .map(s => s.students.split(',').length);
+      return sizes.length ? (sizes.reduce((a,b) => a+b, 0) / sizes.length).toFixed(1) : 0;
+    }
+  },
+  mounted() {
+    this.renderCharts();
+  },
+  watch: {
+    schedule() {
+      this.renderCharts();
+    },
+    students() {
+      this.renderCharts();
+    }
+  },
+  methods: {
+    renderCharts() {
+      this.renderTypeChart();
+      this.renderDayChart();
+      this.renderGradeChart();
+    },
+    renderTypeChart() {
+      const types = {};
+      this.schedule.forEach(s => {
+        const type = s.type || 'normal';
+        types[type] = (types[type] || 0) + 1;
+      });
+      
+      new Chart(this.$refs.typeChart, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(types),
+          datasets: [{
+            data: Object.values(types),
+            backgroundColor: ['#2196F3', '#4CAF50', '#FF9800']
+          }]
+        }
+      });
+    },
+    renderDayChart() {
+      const days = {};
+      this.schedule.forEach(s => {
+        const day = s.day || 'all';
+        days[day] = (days[day] || 0) + 1;
+      });
+      
+      new Chart(this.$refs.dayChart, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(days),
+          datasets: [{
+            label: 'Classes',
+            data: Object.values(days),
+            backgroundColor: '#2196F3'
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    },
+    renderGradeChart() {
+      const grades = {};
+      this.students.forEach(s => {
+        const grade = s.grade || 'Unknown';
+        grades[grade] = (grades[grade] || 0) + 1;
+      });
+      
+      new Chart(this.$refs.gradeChart, {
+        type: 'pie',
+        data: {
+          labels: Object.keys(grades),
+          datasets: [{
+            data: Object.values(grades),
+            backgroundColor: ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5']
+          }]
+        }
+      });
+    }
+  }
+});
+
+// Export View Component
+app.component('export-view', {
+  props: ['schedule', 'students'],
+  template: `
+    <div class="fade-in-up">
+      <h5 class="mb-3">Export Options</h5>
+      
+      <div class="row g-3">
+        <div class="col-md-6 slide-in-right">
+          <div class="card card-glow">
+            <div class="card-body">
+              <h6 class="card-title">
+                <i class="fas fa-file-pdf text-danger"></i> Export to PDF
+              </h6>
+              <p class="card-text">Generate a formatted PDF of your schedule</p>
+              <button class="btn btn-danger" @click="exportPDF"
+                      data-bs-toggle="tooltip" data-bs-placement="bottom"
+                      title="Creates a professionally formatted PDF with all schedule details">
+                <i class="fas fa-download"></i> Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card card-glow">
+            <div class="card-body">
+              <h6 class="card-title">
+                <i class="fas fa-file-code text-primary"></i> Export to JSON
+              </h6>
+              <p class="card-text">Export all data as JSON for backup</p>
+              <button class="btn btn-primary" @click="exportJSON"
+                      data-bs-toggle="tooltip" data-bs-placement="bottom"
+                      title="Create a backup file that can be imported later">
+                <i class="fas fa-download"></i> Download JSON
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card card-glow">
+            <div class="card-body">
+              <h6 class="card-title">
+                <i class="fas fa-file-csv text-success"></i> Export to Google Drive
+              </h6>
+              <p class="card-text">Save a backup to your Google Drive</p>
+              <button class="btn btn-success" @click="exportToDrive"
+                      data-bs-toggle="tooltip" data-bs-placement="bottom"
+                      title="Automatically save a backup copy to your Google Drive">
+                <i class="fas fa-cloud-upload-alt"></i> Save to Drive
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  data() {
+    return {
+      settings: {}
+    };
+  },
+  mounted() {
+    this.loadSettings();
+    // Listen for quick export event
+    document.addEventListener('quick-export-pdf', () => {
+      this.exportPDF();
+    });
+  },
+  methods: {
+    loadSettings() {
+      google.script.run
+        .withSuccessHandler(settings => {
+          this.settings = settings;
+        })
+        .withFailureHandler(error => {
+          console.error('Failed to load settings:', error);
+        })
+        .getSettings();
+    },
+    exportPDF() {
+      const { jsPDF } = window.jspdf;
+      
+      // Get settings with defaults
+      const orientation = this.settings.pdfOrientation || 'landscape';
+      const format = this.settings.pdfFormat || 'letter';
+      const fontSize = parseInt(this.settings.pdfFontSize) || 12;
+      const titleSize = parseInt(this.settings.pdfTitleSize) || 20;
+      const margin = parseInt(this.settings.pdfMargins) || 15;
+      const lineSpacing = parseFloat(this.settings.pdfLineSpacing) || 1.5;
+      const title = this.settings.themeTitle || 'Teaching Schedule';
+      
+      const doc = new jsPDF({
+        orientation,
+        unit: 'mm',
+        format
+      });
+      
+      // Get page dimensions
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const usableWidth = pageWidth - (margin * 2);
+      
+      // Title with theme colors
+      doc.setFontSize(titleSize);
+      doc.setTextColor(102, 126, 234); // Primary color
+      doc.text(title, pageWidth / 2, margin + 10, { align: 'center' });
+      
+      // Subtitle
+      doc.setFontSize(fontSize);
+      doc.setTextColor(118, 75, 162); // Secondary color
+      doc.text(this.settings.themeSubtitle || 'Class Management System', 
+               pageWidth / 2, margin + 20, { align: 'center' });
+      
+      // Date
+      doc.setFontSize(fontSize - 2);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Generated: ' + new Date().toLocaleDateString(), 
+               margin, margin + 30);
+      
+      // Schedule entries
+      let yPos = margin + 40;
+      const lineHeight = fontSize * lineSpacing;
+      
+      doc.setTextColor(0, 0, 0); // Reset to black
+      doc.setFontSize(fontSize);
+      
+      // Group by day
+      const scheduleByDay = {};
+      this.schedule.forEach(slot => {
+        const day = slot.day || 'All Days';
+        if (!scheduleByDay[day]) scheduleByDay[day] = [];
+        scheduleByDay[day].push(slot);
+      });
+      
+      Object.keys(scheduleByDay).forEach(day => {
+        if (yPos > pageHeight - margin - 20) {
+          doc.addPage();
+          yPos = margin;
+        }
+        
+        // Day header
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(fontSize + 2);
+        doc.text(day.charAt(0).toUpperCase() + day.slice(1), margin, yPos);
+        yPos += lineHeight * 1.5;
+        
+        // Entries for this day
+        scheduleByDay[day].forEach(slot => {
+          if (yPos > pageHeight - margin - 15) {
+            doc.addPage();
+            yPos = margin;
+          }
+          
+          // Time and subject with color
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(fontSize);
+          if (slot.color) {
+            const rgb = this.hexToRgb(slot.color);
+            doc.setTextColor(rgb.r, rgb.g, rgb.b);
+          }
+          doc.text(`${slot.time} - ${slot.subject}`, margin + 5, yPos);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont(undefined, 'normal');
+          
+          yPos += lineHeight;
+          
+          // Students
+          if (slot.students) {
+            doc.setFontSize(fontSize - 2);
+            doc.text(`Students: ${slot.students}`, margin + 10, yPos);
+            yPos += lineHeight * 0.8;
+          }
+          
+          // Grade and type
+          if (slot.grade) {
+            doc.setFontSize(fontSize - 2);
+            doc.text(`Grade: ${slot.grade} | Type: ${slot.type || 'normal'}`, 
+                    margin + 10, yPos);
+            yPos += lineHeight * 0.8;
+          }
+          
+          // Note
+          if (slot.note) {
+            doc.setFontSize(fontSize - 2);
+            doc.setFont(undefined, 'italic');
+            const lines = doc.splitTextToSize(slot.note, usableWidth - 15);
+            lines.forEach(line => {
+              if (yPos > pageHeight - margin - 10) {
+                doc.addPage();
+                yPos = margin;
+              }
+              doc.text(line, margin + 10, yPos);
+              yPos += lineHeight * 0.8;
+            });
+            doc.setFont(undefined, 'normal');
+          }
+          
+          yPos += lineHeight * 0.5; // Space between entries
+        });
+        
+        yPos += lineHeight; // Space between days
+      });
+      
+      // Footer
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(fontSize - 3);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Page ${i} of ${totalPages}`, 
+                pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+      
+      doc.save('teaching-schedule.pdf');
+      this.$root.showSuccess('PDF exported successfully');
+      this.$root.celebrate();
+    },
+    hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    },
+    
+    exportJSON() {
+      const data = {
+        schedule: this.schedule,
+        students: this.students,
+        exportDate: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'flyover-teaching-backup.json';
+      a.click();
+      
+      this.$root.showSuccess('JSON exported successfully');
+      this.$root.celebrate();
+    },
+    
+    exportToDrive() {
+      google.script.run
+        .withSuccessHandler(() => {
+          this.$root.showSuccess('Backup saved to Google Drive');
+          this.$root.celebrate();
+        })
+        .withFailureHandler(error => {
+          this.$root.showError('Failed to save: ' + error.message);
+        })
+        .exportSchedule();
+    }
+  }
+});
+</script>
